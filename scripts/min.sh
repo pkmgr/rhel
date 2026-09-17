@@ -1763,11 +1763,15 @@ printf_head "Configuring the firewall"
 # runtime (D-Bus, target=ACCEPT) - a manual --change-interface=docker0
 # binding here collides with it (ZONE_CONFLICT: 'docker0' already bound
 # to a zone) and is also redundant once the public zone below is
-# ACCEPT, so it has been dropped; incusbr0 is left off the same way for
-# consistency, since incus follows the same self-managed-zone pattern.
+# ACCEPT, so it has been dropped. incus does NOT self-manage a zone
+# (ipv4.firewall/ipv6.firewall=false on its networks - it deliberately
+# leaves firewalling to the host), so incusbr0 keeps its explicit bind.
 if type -P firewall-cmd >/dev/null 2>&1; then
 	__devnull systemctl start firewalld
 	__devnull firewall-cmd --permanent --zone=public --set-target=ACCEPT
+	if type -P incus >/dev/null 2>&1; then
+		__devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
+	fi
 	__devnull firewall-cmd --reload
 fi
 ##################################################################################################################

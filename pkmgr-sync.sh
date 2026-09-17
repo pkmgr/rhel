@@ -825,8 +825,15 @@ fi
 devnull firewall-cmd --permanent --zone=public --add-service=http
 devnull firewall-cmd --permanent --zone=public --add-service=https
 devnull firewall-cmd --permanent --zone=public --remove-service=cockpit
-devnull firewall-cmd --permanent --zone=trusted --change-interface=docker0
-devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
+# docker-ce auto-manages its own "docker" firewalld zone for docker0 at
+# runtime (D-Bus, target=ACCEPT) - a manual --change-interface=docker0
+# binding here collides with it (ZONE_CONFLICT: interface already bound
+# to a zone), so it has been dropped. incus does NOT self-manage a zone
+# (ipv4.firewall/ipv6.firewall=false on its networks - it deliberately
+# leaves firewalling to the host), so incusbr0 keeps its explicit bind.
+if devnull command -v incus; then
+	devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
+fi
 devnull firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -p icmp -s 0.0.0.0/0 -d 0.0.0.0/0 -j ACCEPT
 devnull firewall-cmd --reload
 devnull systemctl stop firewalld

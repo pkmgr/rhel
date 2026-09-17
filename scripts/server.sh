@@ -1127,8 +1127,16 @@ if type -P firewall-cmd >/dev/null 2>&1 && system_service_active firewalld; then
 	# the actual blocking) - see etc/firewalld/zones/public.xml and
 	# etc/fail2ban/jail.d/00-firewalld.conf
 	__devnull firewall-cmd --permanent --zone=public --set-target=ACCEPT
-	__devnull firewall-cmd --permanent --zone=trusted --change-interface=docker0
-	__devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
+	# docker-ce auto-manages its own "docker" firewalld zone for docker0 at
+	# runtime (D-Bus, target=ACCEPT) - a manual --change-interface=docker0
+	# binding here collides with it (ZONE_CONFLICT: interface already bound
+	# to a zone), so it has been dropped. incus does NOT self-manage a
+	# zone (ipv4.firewall/ipv6.firewall=false on its networks - it
+	# deliberately leaves firewalling to the host), so incusbr0 keeps its
+	# explicit bind.
+	if type -P incus >/dev/null 2>&1; then
+		__devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
+	fi
 	__devnull firewall-cmd --reload
 	__devnull systemctl stop firewalld
 fi
