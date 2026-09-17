@@ -1011,8 +1011,10 @@ replace_func() {
     awk -v fn="$funcname" -v body="$newbody" '
         BEGIN { skip=0; depth=0; printed_replacement=0 }
         !skip && $0 ~ "^"fn"\\(\\) \\{" {
-            print $0          # print the function header line
-            print body        # print replacement body
+            # print the function header line
+            print $0
+            # print replacement body
+            print body
             skip=1
             depth=1
             next

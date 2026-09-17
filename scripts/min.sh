@@ -340,7 +340,7 @@ __get_www_user() {
 	while IFS=: read -r u _; do
 		case "$u" in www-data|apache|nginx) echo "$u"; return 0 ;; esac
 	done </etc/passwd
-	return 9
+	return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_www_group() {
@@ -348,7 +348,7 @@ __get_www_group() {
 	while IFS=: read -r g _; do
 		case "$g" in www-data|apache|nginx) echo "$g"; return 0 ;; esac
 	done </etc/group
-	return 9
+	return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __copy_ca_certs() {
@@ -631,7 +631,7 @@ __run_post() {
 __kernel_ml() {
 	local exitC=0 pkgs="" kernel=""
 	kernel="$(rpm -qa kernel-ml 2>/dev/null | tail -n1)"
-	local kernel_avail="$(yum search kernel-ml 2>&1 | awk '{print $1}' | grep -- '^kernel-ml-.*[.]' || return)"
+	local kernel_avail="$(yum search kernel-ml 2>&1 | awk '{print $1}' | grep -- '^kernel-ml-.*[.]' || return 1)"
 	# EL7 ships monolithic kernel-ml; EL8/9 split it into -core and -modules*. --skip-broken handles both.
 	local kml_pkgs="kernel-ml kernel-ml-core kernel-ml-modules kernel-ml-modules-extra"
 	if [ -n "$kernel" ]; then
@@ -653,7 +653,7 @@ __kernel_ml() {
 __kernel_lt() {
 	local exitC=0 pkgs="" kernel=""
 	kernel="$(rpm -qa kernel-lt 2>/dev/null | tail -n1)"
-	local kernel_avail="$(yum search kernel-lt 2>&1 | awk '{print $1}' | grep -- '^kernel-lt-.*[.]' || return)"
+	local kernel_avail="$(yum search kernel-lt 2>&1 | awk '{print $1}' | grep -- '^kernel-lt-.*[.]' || return 1)"
 	# EL7 ships monolithic kernel-lt; EL8/9 split it into -core and -modules*. --skip-broken handles both.
 	local klt_pkgs="kernel-lt kernel-lt-core kernel-lt-modules kernel-lt-modules-extra"
 	if [ -n "$kernel" ]; then
