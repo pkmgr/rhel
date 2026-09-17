@@ -157,7 +157,7 @@ SERVICES_DISABLE=""
 [ "$1" == "--help" ] && __printf_exit "${GREEN}${SCRIPT_DESCRIBE} installer for $SCRIPT_OS${NC}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __system_service_exists() { systemctl status "$1" 2>&1 | grep -iq -- "$1" && return 0 || return 1; }
-system_service_enable() { systemctl status "$1" 2>&1 | grep -iq -- 'inactive' && __execute "systemctl enable $1" "Enabling service: $1" || return 1; }
+system_service_enable() { systemctl is-enabled --quiet "$1" 2>/dev/null || __execute "systemctl enable $1" "Enabling service: $1" || return 1; }
 system_service_disable() { systemctl status "$1" 2>&1 | grep -iq -- 'active' && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __dnf_yum() {
@@ -341,6 +341,10 @@ __run_grub() {
     if [ -n "$grub_efi" ]; then
       for efi in $grub_efi; do
         if [ -e "$efi" ]; then
+          # EL9+/Fedora/Debian ship /boot/efi/EFI/{distro}/grub.cfg as a stub that only chainloads the real grub.cfg - grub-mkconfig refuses to overwrite it, so skip it
+          if grep -qs -- 'configfile' "$efi" && ! grep -qs -- 'BEGIN /etc/grub.d/' "$efi"; then
+            continue
+          fi
           __devnull $grub_bin -o "$efi" && __printf_green "Updated $efi" || __printf_return "Failed to update $efi"
         fi
       done
