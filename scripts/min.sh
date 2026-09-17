@@ -58,44 +58,44 @@ unset pkg
 # Vendored from casjay-dotfiles/scripts system-installer.bash (self-contained,
 # no network fetch) - only the functions this script actually calls.
 if [ -n "${NO_COLOR+x}" ] || [ "$SHOW_RAW" = "true" ]; then
-	printf_color() { printf '%b' "$1" | tr -d '\t'; }
+	__printf_color() { printf '%b' "$1" | tr -d '\t'; }
 else
-	printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+	__printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 fi
-printf_green() { printf_color "$1\n" 2; }
-printf_red() { printf_color "$1\n" 208; }
-printf_yellow() { printf_color "$1\n" 3; }
-printf_blue() { printf_color "$1\n" 33; }
-printf_cyan() { printf_color "$1\n" 6; }
-printf_exit() {
-	printf_color "$1\n" 208 1>&2
+__printf_green() { __printf_color "$1\n" 2; }
+__printf_red() { __printf_color "$1\n" 208; }
+__printf_yellow() { __printf_color "$1\n" 3; }
+__printf_blue() { __printf_color "$1\n" 33; }
+__printf_cyan() { __printf_color "$1\n" 6; }
+__printf_exit() {
+	__printf_color "$1\n" 208 1>&2
 	exit 1
 }
-printf_execute_success() { printf_color "[ ✔ ] $1 \n" 2; }
-printf_execute_error() { printf_color "[ ✖ ] $1 $2 \n" 1; }
-printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
-printf_execute_result() {
-	if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "$2"; fi
+__printf_execute_success() { __printf_color "[ ✔ ] $1 \n" 2; }
+__printf_execute_error() { __printf_color "[ ✖ ] $1 $2 \n" 1; }
+__printf_execute_error_stream() { while read -r line; do __printf_execute_error "↳ ERROR: $line"; done; }
+__printf_execute_result() {
+	if [ "$1" -eq 0 ]; then __printf_execute_success "$2"; else __printf_execute_error "$2"; fi
 	return "$1"
 }
-printf_return() {
+__printf_return() {
 	test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="208"
 	test -n "$1" && test -z "${1//[0-9]/}" && local exitCode="$1" && shift 1 || local exitCode="1"
 	local msg="$*"
-	[ ${#msg} = 0 ] || { printf_color "$msg" "$color" 1>&2 && printf "\n"; }
+	[ ${#msg} = 0 ] || { __printf_color "$msg" "$color" 1>&2 && printf "\n"; }
 	return ${exitCode:-2}
 }
-urlcheck() { __devnull curl --output /dev/null --silent --head --fail "$1"; }
-urlinvalid() {
+__urlcheck() { __devnull curl --output /dev/null --silent --head --fail "$1"; }
+__urlinvalid() {
 	if [ -z "$1" ]; then
-		printf_red "Invalid URL\n"
+		__printf_red "Invalid URL\n"
 	else
-		printf_red "Can't find $1\n"
+		__printf_red "Can't find $1\n"
 	fi
 	exit 1
 }
-urlverify() { urlcheck $1 || urlinvalid $1; }
-setexitstatus() {
+__urlverify() { __urlcheck $1 || __urlinvalid $1; }
+__setexitstatus() {
 	EXIT="${EXIT:-$?}"
 	local EXITSTATUS+="$EXIT"
 	if [ -z "$EXITSTATUS" ] || [ "$EXITSTATUS" -ne 0 ]; then
@@ -106,8 +106,8 @@ setexitstatus() {
 		return 0
 	fi
 }
-set_trap() { trap -p "$1" | grep -- "$2" &>/dev/null || trap "$2" "$1"; }
-execute() {
+__set_trap() { trap -p "$1" | grep -- "$2" &>/dev/null || trap "$2" "$1"; }
+__execute() {
 	kill_all_subprocesses() {
 		local i=""
 		for i in $(jobs -p); do
@@ -148,15 +148,15 @@ execute() {
 	local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
 	local exitCode=0
 	local cmdsPID=""
-	set_trap "EXIT" "kill_all_subprocesses"
+	__set_trap "EXIT" "kill_all_subprocesses"
 	eval "$CMDS" >/dev/null 2>"$TMP_FILE" &
 	cmdsPID=$!
 	show_spinner "$cmdsPID" "$CMDS" "$MSG"
 	wait "$cmdsPID" &>/dev/null
 	exitCode=$?
-	printf_execute_result $exitCode "$MSG"
+	__printf_execute_result $exitCode "$MSG"
 	if [ $exitCode -ne 0 ]; then
-		printf_execute_error_stream <"$TMP_FILE"
+		__printf_execute_error_stream <"$TMP_FILE"
 	fi
 	rm -rf "$TMP_FILE"
 	return $exitCode
@@ -194,7 +194,7 @@ if [ -n "$root_pass_1" ]; then
 	fi
 fi
 unset root_pass_1 root_pass_2
-printf_blue "System setup completed continuing setup" && sleep 3 && clear
+__printf_blue "System setup completed continuing setup" && sleep 3 && clear
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$(find /var/cache/swaps -mindepth 1 2>/dev/null)" ]; then
 	SWAP_SIZE="$(swapon --show=SIZE --noheadings 2>/dev/null | awk 'NR==1{gsub(/[0-9.]/,""); gsub(/ /,""); print}')"
@@ -320,17 +320,17 @@ SERVICES_DISABLE+="lvm2-lvmpolld.socket lvm2-monitor mdmonitor multipathd.servic
 SERVICES_DISABLE+="nmb radvd rpcbind.service rpcbind.socket smb sssd-kcm.socket timedatex.service tuned.service udisks2.service"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$RELEASE_TYPE" != "rhel" ]; then
-	printf_exit "This installer is meant to be run on a $SCRIPT_OS based system"
+	__printf_exit "This installer is meant to be run on a $SCRIPT_OS based system"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$1" == "--help" ] && printf_exit "${GREEN}${SCRIPT_DESCRIBE} installer for $SCRIPT_OS${NC}"
+[ "$1" == "--help" ] && __printf_exit "${GREEN}${SCRIPT_DESCRIBE} installer for $SCRIPT_OS${NC}"
 __devnull() { "$@" >/dev/null 2>&1; }
 __port_in_use() { netstatg 2>&1 | awk '{print $4}' | grep -- ':[0-9]' | awk -F':' '{print $2}' | grep -- '[0-9]' | grep -q -- "^$1$" || return 2; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __system_service_exists() { systemctl status "$1" 2>&1 | grep -- 'Loaded:' | grep -iq -- "$1" && return 0 || return 1; }
 __system_service_active() { (systemctl is-enabled "$1" || systemctl is-active "$1") | grep -qiE -- 'enabled|active' || return 1; }
-system_service_enable() { systemctl status "$1" 2>&1 | grep -iq -- 'inactive' && execute "systemctl enable --now $1" "Enabling service: $1" || return 1; }
-system_service_disable() { systemctl is-active --quiet "$1" && execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
+system_service_enable() { systemctl status "$1" 2>&1 | grep -iq -- 'inactive' && __execute "systemctl enable --now $1" "Enabling service: $1" || return 1; }
+system_service_disable() { systemctl is-active --quiet "$1" && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __does_user_exist() { grep -qs -- "^$1:" "/etc/passwd" || return 1; }
 __does_group_exist() { grep -qs -- "^$1:" "/etc/group" || return 1; }
@@ -354,16 +354,16 @@ __get_www_group() {
 __copy_ca_certs() {
 	local ssl_cn="" ssl_key="/etc/ssl/CA/CasjaysDev/private/localhost.key" ssl_crt="/etc/ssl/CA/CasjaysDev/certs/localhost.crt"
 	if [ ! -d "/etc/letsencrypt/live/domain" ] || [ ! -L "/etc/letsencrypt/live/domain" ]; then
-		printf_red "letsencrypt seemed to have failed: Installing self-signed certificates"
+		__printf_red "letsencrypt seemed to have failed: Installing self-signed certificates"
 		mkdir -p "/etc/letsencrypt/live/domain" "/etc/ssl/CA/CasjaysDev/private" "/etc/ssl/CA/CasjaysDev/certs"
 		# casjay-base ships a committed key/cert pair at this path - this is only a
 		# fallback for the rare case it's missing on the deployed host
 		if [ ! -s "$ssl_key" ] || [ ! -s "$ssl_crt" ]; then
 			ssl_cn="$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo 'localhost')"
-			printf_cyan "Generating a self-signed certificate for $ssl_cn"
+			__printf_cyan "Generating a self-signed certificate for $ssl_cn"
 			__devnull openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout "$ssl_key" -out "$ssl_crt" \
 				-subj "/CN=$ssl_cn" -addext "subjectAltName=DNS:$ssl_cn,DNS:localhost,IP:127.0.0.1" ||
-				printf_red "Failed to generate a self-signed certificate"
+				__printf_red "Failed to generate a self-signed certificate"
 		fi
 		chmod -f 600 "$ssl_key"
 		chmod -f 644 "$ssl_crt"
@@ -402,7 +402,7 @@ __dnf_yum() {
 __test_pkg() {
 	for pkg in "$@"; do
 		if rpm -q "$pkg" >/dev/null 2>&1; then
-			printf_blue "[ ✔ ] $pkg is already installed"
+			__printf_blue "[ ✔ ] $pkg is already installed"
 			return 1
 		else
 			return 0
@@ -414,7 +414,7 @@ __remove_pkg() {
 	local pkg=""
 	for pkg in "$@"; do
 		if rpm -q "$pkg" >/dev/null 2>&1; then
-			execute "rpm -ev --nodeps $pkg" "Removing: $pkg"
+			__execute "rpm -ev --nodeps $pkg" "Removing: $pkg"
 		fi
 	done
 	return 0
@@ -424,7 +424,7 @@ __install_pkg() {
 	local statusCode=0
 	excludes="$exclude_packages"
 	if __test_pkg "$*"; then
-		execute "__dnf_yum install -q -yy $* $excludes" "Installing: $*"
+		__execute "__dnf_yum install -q -yy $* $excludes" "Installing: $*"
 		__test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
 	else
 		statusCode=0
@@ -444,7 +444,7 @@ __detect_selinux() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __disable_selinux() {
 	if __detect_selinux; then
-		printf_blue "selinux is now disabled"
+		__printf_blue "selinux is now disabled"
 		if [ -f "/etc/selinux/config" ]; then
 			__devnull setenforce 0
 			sed -i 's|SELINUX=.*|SELINUX=disabled|g' "/etc/selinux/config"
@@ -458,7 +458,7 @@ SELINUXTYPE=targeted
 EOF
 		fi
 	else
-		printf_green "selinux is already disabled"
+		__printf_green "selinux is already disabled"
 	fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -473,14 +473,14 @@ __get_user_ssh_key() {
 		echo "$get_keys" | while read -r key; do
 			key_value="$(echo "$key" | awk -F ' ' '{print $2}')"
 			if grep -qs -- "$key" "$HOME/.ssh/authorized_keys"; then
-				printf_cyan "Key exists in ~/.ssh/authorized_keys: ${key_value:0:$col}"
+				__printf_cyan "Key exists in ~/.ssh/authorized_keys: ${key_value:0:$col}"
 			else
 				echo "$key" | tee -a "/root/.ssh/authorized_keys" &>/dev/null
-				printf_green "Successfully added key: ${key_value:0:$col}"
+				__printf_green "Successfully added key: ${key_value:0:$col}"
 			fi
 		done
 	else
-		printf_return "Can not get key from $PKMGR_SSH_KEY_LOCATION"
+		__printf_return "Can not get key from $PKMGR_SSH_KEY_LOCATION"
 		return 1
 	fi
 }
@@ -497,11 +497,11 @@ __run_init_check() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __yum() { yum "$@" &>/dev/null || return 1; }
-__grab_remote_file() { urlverify "$1" && curl -q -SLs "$1" || exit 1; }
+__grab_remote_file() { __urlverify "$1" && curl -q -SLs "$1" || exit 1; }
 __backup_repo_files() { cp -Rf "/etc/yum.repos.d/." "$BACKUP_DIR" 2>/dev/null || return 0; }
 __rm_repo_files() { [ "${1:-$YUM_DELETE}" = "yes" ] && rm -Rf "/etc/yum.repos.d"/* &>/dev/null || return 0; }
-__run_external() { printf_green "Executing $*" && eval "$*" >/dev/null 2>&1 || return 1; }
-__save_remote_file() { urlverify "$1" && curl -q -SLs "$1" | tee "$2" &>/dev/null || exit 1; }
+__run_external() { __printf_green "Executing $*" && eval "$*" >/dev/null 2>&1 || return 1; }
+__save_remote_file() { __urlverify "$1" && curl -q -SLs "$1" | tee "$2" &>/dev/null || exit 1; }
 __retrieve_version_file() { __grab_remote_file "https://github.com/casjay-base/rhel/raw/main/version.txt" | head -n1 || echo "Unknown version"; }
 __domain_name() {
 	local d="" f=""
@@ -517,9 +517,7 @@ __domain_name() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_head() {
-	printf '%b##################################################\n' "$CYAN"
-	printf '%b%s%b\n' $GREEN "$*" $CYAN
-	printf '##################################################%b\n' $NC
+	printf_color "\n##################################################\n$*\n##################################################\n" 6
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __printf_clear() {
@@ -531,7 +529,7 @@ __rm_if_exists() {
 	local file_loc=("$@") && shift $#
 	for file in "${file_loc[@]}"; do
 		if [ -e "$file" ]; then
-			execute "rm -Rf $file" "Removing $file"
+			__execute "rm -Rf $file" "Removing $file"
 		fi
 	done
 }
@@ -558,7 +556,7 @@ __retrieve_repo_file() {
 		RELEASE_FILE="https://github.com/rpm-devel/casjay-release/raw/main/$RELEASE_FILE_NAME"
 	else
 		yum makecache &>/dev/null
-		return
+		return 0
 	fi
 	if [ -n "$RELEASE_FILE" ]; then
 		printf '%b\n' "${YELLOW}Updating yum repos: This may take some time${NC}"
@@ -594,18 +592,15 @@ __run_grub() {
 		else
 			echo "GRUB_ENABLE_BLSCFG=false" >>'/etc/default/grub'
 		fi
-		# if grep -sq 'crashkernel=' '/etc/default/grub'; then
-		#   sed -i '/^GRUB_CMDLINE_LINUX=/s/crashkernel=.*[KMG][, ]//' '/etc/default/grub'
-		# fi
 		__rm_if_exists /boot/*rescue*
 		__rm_if_exists /boot/loader/entries/*
 		if [ -n "$grub_cfg" ]; then
 			for cfg in $grub_cfg; do
 				if [ -e "$cfg" ]; then
 					if __devnull $grub_bin -o "$cfg"; then
-						printf_green "Updated $cfg"
+						__printf_green "Updated $cfg"
 					else
-						printf_return "Failed to update $cfg"
+						__printf_return "Failed to update $cfg"
 					fi
 				fi
 			done
@@ -614,9 +609,9 @@ __run_grub() {
 			for efi in $grub_efi; do
 				if [ -e "$efi" ]; then
 					if __devnull $grub_bin -o "$efi"; then
-						printf_green "Updated $efi"
+						__printf_green "Updated $efi"
 					else
-						printf_return "Failed to update $efi"
+						__printf_return "Failed to update $efi"
 					fi
 				fi
 			done
@@ -627,8 +622,8 @@ __run_grub() {
 __run_post() {
 	local e="$*"
 	local m="${e//__devnull /}"
-	execute "$e" "${run_post_message:-executing: $m}"
-	setexitstatus
+	__execute "$e" "${run_post_message:-executing: $m}"
+	__setexitstatus
 	set --
 	unset run_post_message
 }
@@ -640,16 +635,16 @@ __kernel_ml() {
 	# EL7 ships monolithic kernel-ml; EL8/9 split it into -core and -modules*. --skip-broken handles both.
 	local kml_pkgs="kernel-ml kernel-ml-core kernel-ml-modules kernel-ml-modules-extra"
 	if [ -n "$kernel" ]; then
-		printf_green "kernel-ml is already installed: $kernel"
+		__printf_green "kernel-ml is already installed: $kernel"
 	elif [ -n "$kernel_avail" ]; then
-		printf_cyan "Switching to the newest kernel from elrepo - This may take a few minutes"
+		__printf_cyan "Switching to the newest kernel from elrepo - This may take a few minutes"
 		# Only remove base kernel boot/module packages. Keep kernel-tools, kernel-headers, kernel-devel etc.
 		pkgs="$(rpm -qa kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra 2>/dev/null)"
 		[ -n "$pkgs" ] && __remove_pkg $pkgs
 		yum install -yyq --skip-broken $kml_pkgs >/dev/null || exitC=1
 		__run_grub
 	else
-		printf_yellow "kernel-ml doesn't seem to be available"
+		__printf_yellow "kernel-ml doesn't seem to be available"
 		exitC=1
 	fi
 	return $exitC
@@ -662,16 +657,16 @@ __kernel_lt() {
 	# EL7 ships monolithic kernel-lt; EL8/9 split it into -core and -modules*. --skip-broken handles both.
 	local klt_pkgs="kernel-lt kernel-lt-core kernel-lt-modules kernel-lt-modules-extra"
 	if [ -n "$kernel" ]; then
-		printf_green "kernel-lt is already installed: $kernel"
+		__printf_green "kernel-lt is already installed: $kernel"
 	elif [ -n "$kernel_avail" ]; then
-		printf_cyan "Switching to the newest LTS kernel from elrepo - This may take a few minutes"
+		__printf_cyan "Switching to the newest LTS kernel from elrepo - This may take a few minutes"
 		# Only remove base kernel boot/module packages. Keep kernel-tools, kernel-headers, kernel-devel etc.
 		pkgs="$(rpm -qa kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra 2>/dev/null)"
 		[ -n "$pkgs" ] && __remove_pkg $pkgs
 		yum install -yyq --skip-broken $klt_pkgs >/dev/null || exitC=1
 		__run_grub
 	else
-		printf_yellow "kernel-lt doesn't seem to be available"
+		__printf_yellow "kernel-lt doesn't seem to be available"
 		exitC=1
 	fi
 	return $exitC
@@ -679,7 +674,7 @@ __kernel_lt() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __fix_network_device_name() {
 	local device="${NETDEV:-eth0}"
-	printf_green "Setting network device name to $device in $1"
+	__printf_green "Setting network device name to $device in $1"
 	find "$1" -type f -exec sed -i "s|mynetworkdevice|$device|g" {} +
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -697,12 +692,12 @@ __create_account() {
 		pass="$(__generate_password)"
 	fi
 	if __does_user_exist "$user"; then
-		printf_yellow "User $user already exists - updating password only"
+		__printf_yellow "User $user already exists - updating password only"
 		echo "$user:$pass" | __devnull chpasswd
 	else
 		existing_uid="$(getent passwd "$uid" | awk -F':' '{print $1}')"
 		if [ -n "$existing_uid" ]; then
-			printf_yellow "UID $uid already in use by $existing_uid - skipping $user"
+			__printf_yellow "UID $uid already in use by $existing_uid - skipping $user"
 			return 1
 		fi
 		__devnull groupadd -g "$uid" "$user"
@@ -717,7 +712,7 @@ __create_account() {
 		fi
 	fi
 	SETUP_ACCOUNT_CREDS+=("$user:$pass")
-	printf_green "Account ready: $user (uid $uid)"
+	__printf_green "Account ready: $user (uid $uid)"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##################################################################################################################
@@ -725,21 +720,21 @@ __printf_clear "Initializing the installer for $RELEASE_NAME using $SCRIPT_DESCR
 ##################################################################################################################
 [ -d "/etc/casjaysdev/updates/versions" ] || mkdir -p "/etc/casjaysdev/updates/versions"
 if [ -f "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt" ]; then
-	printf_red "$(<"/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt")"
-	printf_red "To reinstall please remove the version file in"
-	printf_red "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt"
+	__printf_red "$(<"/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt")"
+	__printf_red "To reinstall please remove the version file in"
+	__printf_red "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt"
 	exit 1
 elif [ -f "/etc/casjaysdev/updates/versions/installed.txt" ]; then
-	printf_red "$(<"/etc/casjaysdev/updates/versions/installed.txt")"
-	printf_red "To reinstall please remove the version file in"
-	printf_red "/etc/casjaysdev/updates/versions/installed.txt"
+	__printf_red "$(<"/etc/casjaysdev/updates/versions/installed.txt")"
+	__printf_red "To reinstall please remove the version file in"
+	__printf_red "/etc/casjaysdev/updates/versions/installed.txt"
 	exit 1
 else
 	__run_init_check
 	if ! __retrieve_repo_file; then
 		__devnull __rm_if_exists "/etc/casjaysdev/updates/versions/installed.txt"
 		__devnull __rm_if_exists "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt"
-		printf_red "The script has failed to initialize"
+		__printf_red "The script has failed to initialize"
 		exit 2
 	fi
 	if [ ! -f "/etc/casjaysdev/updates/versions/os_version.txt" ]; then
@@ -752,7 +747,7 @@ if type -P systemmgr >/dev/null 2>&1; then
 	__run_external /usr/local/share/CasjaysDev/scripts/bin/systemmgr update scripts
 	__run_external "__yum clean all"
 fi
-printf_green "Installer has been initialized"
+__printf_green "Installer has been initialized"
 ##################################################################################################################
 printf_head "Fixing initscripts"
 ##################################################################################################################
@@ -800,7 +795,7 @@ __disable_selinux
 printf_head "Configuring cores for compiling"
 ##################################################################################################################
 numberofcores=$(grep -c -- ^processor /proc/cpuinfo)
-printf_yellow "Total cores available: $numberofcores"
+__printf_yellow "Total cores available: $numberofcores"
 if [ $numberofcores -gt 1 ]; then
 	if [ -f "/etc/makepkg.conf" ]; then
 		sed -i 's/#MAKEFLAGS="-j2"/MAKEFLAGS="-j'$((numberofcores + 1))'"/g' /etc/makepkg.conf
@@ -1007,7 +1002,7 @@ if type -P dnf >/dev/null 2>&1 && dnf module list php 2>/dev/null | grep -q -- '
 	_php_extra_opts="--disableexcludes=casjay-os-appstream"
 fi
 pkg=php
-execute "__dnf_yum install -q -yy $_php_extra_opts $_php_pkgs" "Installing: PHP packages"
+__execute "__dnf_yum install -q -yy $_php_extra_opts $_php_pkgs" "Installing: PHP packages"
 unset _php_pkgs _php_extra_opts _php_stream pkg
 __install_pkg pinentry
 __install_pkg postfix
@@ -1065,7 +1060,7 @@ printf_head "Installing version-specific packages"
 ##################################################################################################################
 if [ "$SYSTEM_TYPE" = "dns" ]; then
 	if __devnull __install_pkg ntp || __devnull __install_pkg ntpsec; then
-		printf_cyan "Installed ntp"
+		__printf_cyan "Installed ntp"
 		SERVICES_ENABLE="$SERVICES_ENABLE ntpd"
 		[ -d "/var/lib/ntp/stats" ] || mkdir -p "/var/lib/ntp/stats"
 	fi
@@ -1287,7 +1282,7 @@ exclude_packages="--exclude=qemu*-9*"
 __devnull crb enable
 __devnull yum clean packages
 if ! grep -Rqsi -- 'copr.*incus' '/etc/yum.repos.d'; then
-	printf_green "Enabling the dnf incus repo"
+	__printf_green "Enabling the dnf incus repo"
 	__devnull dnf -y install epel-release
 	__devnull dnf -y copr enable neil/incus
 	__devnull dnf -y config-manager --enable crb
@@ -1316,7 +1311,7 @@ if [ "$incus_setup_failed" = "no" ]; then
 		__devnull incus network set incusbr0 ipv4.firewall false
 		__devnull incus network set incusbr0 ipv6.firewall false
 		__devnull systemctl restart incus
-		printf_blue "incus has been initialized"
+		__printf_blue "incus has been initialized"
 		unset incus_setup_failed
 	else
 		incus_setup_failed="yes"
@@ -1336,13 +1331,13 @@ if [ -n "$CLOUDFLARE_EMAIL" ] && [ -n "$CLOUDFLARE_API_KEY" ] && [ -n "$CLOUDFLA
 	if __devnull cloudflare update "$SET_HOSTNAME" "${cf_args[@]}"; then
 		CLOUDFLARE_DOMAIN="yes"
 		__devnull cloudflare update "*.$SET_HOSTNAME" "${cf_args[@]}"
-		printf_blue "Successfully updated $SET_HOSTNAME in $CLOUDFLARE_ZONE_NAME"
+		__printf_blue "Successfully updated $SET_HOSTNAME in $CLOUDFLARE_ZONE_NAME"
 	elif __devnull cloudflare create "$SET_HOSTNAME" "${cf_args[@]}"; then
 		CLOUDFLARE_DOMAIN="yes"
 		__devnull cloudflare create "*.$SET_HOSTNAME" "${cf_args[@]}"
-		printf_blue "Created $SET_HOSTNAME for $CLOUDFLARE_ZONE_NAME"
+		__printf_blue "Created $SET_HOSTNAME for $CLOUDFLARE_ZONE_NAME"
 	else
-		printf_red "Failed to create record $SET_HOSTNAME for zone $CLOUDFLARE_ZONE_NAME"
+		__printf_red "Failed to create record $SET_HOSTNAME for zone $CLOUDFLARE_ZONE_NAME"
 	fi
 	unset cf_args
 fi
@@ -1396,10 +1391,10 @@ if [ -n "$le_primary_domain" ]; then
 		chmod -f 600 "/etc/certbot/dns.conf"
 		if command -v acme-cli >/dev/null 2>&1; then
 			if [ -z "$le_domain_list" ]; then
-				printf_cyan "Attempting to get certificates from letsencrypt for $le_primary_domain and *.$le_primary_domain"
+				__printf_cyan "Attempting to get certificates from letsencrypt for $le_primary_domain and *.$le_primary_domain"
 				__run_post acme-cli --init $le_options
 			else
-				printf_cyan "Attempting to get certificates from letsencrypt for $le_primary_domain and all domains in var: le_domain_list"
+				__printf_cyan "Attempting to get certificates from letsencrypt for $le_primary_domain and all domains in var: le_domain_list"
 				__run_post acme-cli --init --no-test --no-subs
 			fi
 		fi
@@ -1477,7 +1472,7 @@ EOF
 			fi
 			chmod +x "/etc/letsencrypt/renewal-hooks/post"/*
 		fi
-		printf_blue "letsencrypt certificates have been created"
+		__printf_blue "letsencrypt certificates have been created"
 	else
 		__copy_ca_certs
 	fi
@@ -1502,7 +1497,7 @@ printf_head "Setting up rsyncd"
 # it is never shipped in casjay-base
 if [ -f "/etc/rsyncd.conf" ] && [ ! -s "/etc/rsyncd.secrets" ]; then
 	printf "backup:%s\n" "$(openssl rand -base64 24 | tr -d '\n')" >"/etc/rsyncd.secrets"
-	printf_cyan "Generated rsync credentials in /etc/rsyncd.secrets"
+	__printf_cyan "Generated rsync credentials in /etc/rsyncd.secrets"
 fi
 chown -f root:root "/etc/rsyncd.secrets" 2>/dev/null
 chmod -f 600 "/etc/rsyncd.secrets" 2>/dev/null
@@ -1519,8 +1514,8 @@ __run_post "munin-node-configure --remove-also --shell" >/dev/null 2>/dev/null
 # Plugin credentials ship as the non-functional token CHANGEME_AT_BOOTSTRAP so a
 # real password is never committed - say so loudly instead of failing silently
 if grep -q -- 'CHANGEME_AT_BOOTSTRAP' "/etc/munin/plugin-conf.d/munin-node" 2>/dev/null; then
-	printf_yellow "Placeholder credentials remain in /etc/munin/plugin-conf.d/munin-node"
-	printf_yellow "Set the real passwords there, or delete the sections you do not monitor"
+	__printf_yellow "Placeholder credentials remain in /etc/munin/plugin-conf.d/munin-node"
+	__printf_yellow "Set the real passwords there, or delete the sections you do not monitor"
 fi
 # This file holds credentials once they are filled in - keep it off world-read
 chown -f root:munin "/etc/munin/plugin-conf.d/munin-node" 2>/dev/null
@@ -1553,14 +1548,14 @@ printf_head "Generating default webserver for $HOSTNAME"
 ##################################################################################################################
 if [ -z "$IS_INSTALLED_HTTPD" ] || [ -z "$IS_INSTALLED_NGINX" ]; then
 	if [ -d "/var/www/nginx/domains/$HOSTNAME" ]; then
-		printf_blue "Server directory already exists"
+		__printf_blue "Server directory already exists"
 	else
 		__devnull gen-nginx --config
 		__devnull gen-nginx php $HOSTNAME
 		if [ -d "/var/www/nginx/domains/$HOSTNAME" ]; then
-			printf_green "Created server in /var/www/nginx/domains/$HOSTNAME"
+			__printf_green "Created server in /var/www/nginx/domains/$HOSTNAME"
 		else
-			printf_red "Failed to create default server"
+			__printf_red "Failed to create default server"
 		fi
 	fi
 fi

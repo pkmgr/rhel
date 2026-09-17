@@ -51,7 +51,7 @@ done
 unset pkg
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 read -t 30 -p "Enter your full hostname: (default: $HOSTNAME) " set_hostname
-set_hostname="${set_hostname:-$(hostname -f | grep '^' || echo "$HOSTNAME")}"
+set_hostname="${set_hostname:-$(hostname -f | grep -- '^' || echo "$HOSTNAME")}"
 if [ -n "$set_hostname" ]; then
   hostnamectl set-hostname $set_hostname && echo "$set_hostname" >/etc/hostname || false
   [ $? -eq 0 ] && [ -n "$(type -P hostname)" ] && hostname -F /etc/hostname
@@ -78,14 +78,14 @@ fi
 unset root_pass_1 root_pass_2
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(ls -A /var/cache/swaps 2>/dev/null | wc -l)" -eq 0 ]; then
-  SWAP_SIZE="$(swapon --show=SIZE --noheadings | sed 's/[0-9]//g' | head -n1 | grep 'M' || swapon --show=SIZE --noheadings | sed 's/[0-9]//g' | head -n1 | grep 'G' || false)"
+  SWAP_SIZE="$(swapon --show=SIZE --noheadings | sed 's/[0-9]//g' | head -n1 | grep -- 'M' || swapon --show=SIZE --noheadings | sed 's/[0-9]//g' | head -n1 | grep -- 'G' || false)"
   if [ "$SWAP_SIZE" != "G" ]; then
     swap_file_size="4096"
     swap_file="swapFile"
     swap_dir="/var/cache/swaps"
     kilobit="2000000"
     gigabit=$((kilobit / 1000))
-    mem="$(free | grep ':' | awk '{print $2}' | head -n1 | grep '^' || echo "1")"
+    mem="$(free | grep -- ':' | awk '{print $2}' | head -n1 | grep -- '^' || echo "1")"
     if [ $mem -le $kilobit ] && [ ! -f "$swap_dir/$swap_file" ]; then
       echo "Setting up swap in $swap_dir/$swap_file"
       echo "This may take a few minutes so enjoy your coffee"
@@ -95,13 +95,13 @@ if [ "$(ls -A /var/cache/swaps 2>/dev/null | wc -l)" -eq 0 ]; then
         chmod 600 $swap_dir/$swap_file
         mkswap $swap_dir/$swap_file >/dev/null
         swapon $swap_dir/$swap_file >/dev/null
-        if ! grep -qs "$swap_dir/$swap_file" /etc/fstab; then
+        if ! grep -qs -- "$swap_dir/$swap_file" /etc/fstab; then
           echo "$swap_dir/$swap_file          swap        swap             defaults          0 0" | tee -a /etc/fstab >/dev/null
         fi
       fi
     fi
     unset SWAP_SIZE swap_file_size swap_file swap_dir kilobit gigabit mem
-    swapon --show 2>/dev/null | grep -v '^NAME ' | grep -q '^' && echo "Swap has been enabled"
+    swapon --show 2>/dev/null | grep -v -- '^NAME ' | grep -q -- '^' && echo "Swap has been enabled"
     sleep 5
   fi
 fi
@@ -231,14 +231,14 @@ SCRIPT_DESCRIBE="Minimal"
 GITHUB_USER="${GITHUB_USER:-casjay}"
 SYSTEMMGR_CONFIGS="cron ssh ssl"
 DFMGR_CONFIGS="misc vim bash git tmux"
-SET_HOSTNAME="$([ -n "$(command -v hostname)" ] && hostname -s 2>/dev/null | grep '^' || echo "${MY_HOST_NAME//.*/}")"
+SET_HOSTNAME="$([ -n "$(command -v hostname)" ] && hostname -s 2>/dev/null | grep -- '^' || echo "${MY_HOST_NAME//.*/}")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SCRIPT_NAME="$APPNAME"
 SCRIPT_NAME="${SCRIPT_NAME%.*}"
-RELEASE_VER="$(grep --no-filename -s 'VERSION_ID=' /etc/*-release | awk -F '=' '{print $2}' | sed 's#"##g' | awk -F '.' '{print $1}' | grep '^')"
-RELEASE_NAME="$(grep --no-filename -s '^NAME=' /etc/*-release | awk -F'=' '{print $2}' | sed 's|"||g;s| .*||g' | tr '[:upper:]' '[:lower:]' | grep '^')"
-RELEASE_ID="$(grep --no-filename -s '^ID=' /etc/*-release | awk -F'=' '{print $2}' | sed 's|"||g' | tr '[:upper:]' '[:lower:]' | grep '^')"
-RELEASE_TYPE="$(i="$RELEASE_ID"; l=" $(grep --no-filename -s '^ID_LIKE=' /etc/*-release | awk -F'=' '{print $2}' | sed 's|"||g' | tr '[:upper:]' '[:lower:]') "; if [ "$i" = "rhel" ] || [ "$i" = "centos" ] || [ "$i" = "ol" ] || [[ "$l" == *" rhel "* ]] || [[ "$l" == *" centos "* ]]; then echo "rhel"; fi)"
+RELEASE_VER="$(grep -s --no-filename -- 'VERSION_ID=' /etc/*-release | awk -F '=' '{print $2}' | sed 's#"##g' | awk -F '.' '{print $1}' | grep -- '^')"
+RELEASE_NAME="$(grep -s --no-filename -- '^NAME=' /etc/*-release | awk -F'=' '{print $2}' | sed 's|"||g;s| .*||g' | tr '[:upper:]' '[:lower:]' | grep -- '^')"
+RELEASE_ID="$(grep -s --no-filename -- '^ID=' /etc/*-release | awk -F'=' '{print $2}' | sed 's|"||g' | tr '[:upper:]' '[:lower:]' | grep -- '^')"
+RELEASE_TYPE="$(i="$RELEASE_ID"; l=" $(grep -s --no-filename -- '^ID_LIKE=' /etc/*-release | awk -F'=' '{print $2}' | sed 's|"||g' | tr '[:upper:]' '[:lower:]') "; if [ "$i" = "rhel" ] || [ "$i" = "centos" ] || [ "$i" = "ol" ] || [[ "$l" == *" rhel "* ]] || [[ "$l" == *" centos "* ]]; then echo "rhel"; fi)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DEFAULT_KERNEL="${DEFAULT_KERNEL:-kernel-ml}"
 ARCH="$(uname -m | tr '[:upper:]' '[:lower:]')"
@@ -246,19 +246,19 @@ BACKUP_DIR="$HOME/Documents/backups/$(date +'%Y/%m/%d')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SSH_KEY_LOCATION="${SSH_KEY_LOCATION:-https://github.com/$GITHUB_USER.keys}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^pbx'; then
+if echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^pbx'; then
   SYSTEM_TYPE="pbx"
-elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^dns'; then
+elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^dns'; then
   SYSTEM_TYPE="dns"
-elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^vpn'; then
+elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^vpn'; then
   SYSTEM_TYPE="vpn"
-elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^mail'; then
+elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^mail'; then
   SYSTEM_TYPE="mail"
-elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^server'; then
+elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^server'; then
   SYSTEM_TYPE="server"
-elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^sql|^db'; then
+elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^sql|^db'; then
   SYSTEM_TYPE="sql"
-elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE '^devel|^build|^ci|^testing'; then
+elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^devel|^build|^ci|^testing'; then
   SYSTEM_TYPE="devel"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -272,25 +272,25 @@ SERVICES_DISABLE+="nmb radvd rpcbind.service rpcbind.socket shorewall shorewall6
 [ "$RELEASE_TYPE" = "rhel" ] || __printf_exit "This installer is meant to be run on a $SCRIPT_OS based system"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$1" == "--help" ] && __printf_exit "${GREEN}${SCRIPT_DESCRIBE} installer for $SCRIPT_OS${NC}"
-port_in_use() { netstatg 2>&1 | awk '{print $4}' | grep ':[0-9]' | awk -F':' '{print $2}' | grep '[0-9]' | grep -q "^$1$" || return 2; }
+__port_in_use() { netstatg 2>&1 | awk '{print $4}' | grep -- ':[0-9]' | awk -F':' '{print $2}' | grep -- '[0-9]' | grep -q -- "^$1$" || return 2; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-system_service_exists() { systemctl status "$1" 2>&1 | grep -- 'Loaded:' | grep -iq -- "$1" && return 0 || return 1; }
-system_service_active() { (systemctl is-enabled "$1" || systemctl is-active "$1") | grep -qiE 'enabled|active' || return 1; }
+__system_service_exists() { systemctl status "$1" 2>&1 | grep -- 'Loaded:' | grep -iq -- "$1" && return 0 || return 1; }
+__system_service_active() { (systemctl is-enabled "$1" || systemctl is-active "$1") | grep -qiE -- 'enabled|active' || return 1; }
 system_service_enable() { systemctl status "$1" 2>&1 | grep -iq -- 'inactive' && __execute "systemctl enable --now $1" "Enabling service: $1" || return 1; }
 system_service_disable() { systemctl is-active --quiet "$1" && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-does_user_exist() { grep -qs "^$1:" "/etc/passwd" || return 1; }
-does_group_exist() { grep -qs "^$1:" "/etc/group" || return 1; }
+__does_user_exist() { grep -qs -- "^$1:" "/etc/passwd" || return 1; }
+__does_group_exist() { grep -qs -- "^$1:" "/etc/group" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_www_user() {
   local user=""
-  user="$(grep -sh "www-data" "/etc/passwd" || grep -sh "apache" "/etc/passwd" || grep -sh "nginx" "/etc/passwd")"
+  user="$(grep -sh -- "www-data" "/etc/passwd" || grep -sh -- "apache" "/etc/passwd" || grep -sh -- "nginx" "/etc/passwd")"
   [ -n "$user" ] && echo "$user" | awk -F ':' '{print $1}' || return 9
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_www_group() {
   local group=""
-  group="$(grep -sh "www-data" "/etc/group" || grep -sh "apache" "/etc/group" || grep -sh "nginx" "/etc/group")"
+  group="$(grep -sh -- "www-data" "/etc/group" || grep -sh -- "apache" "/etc/group" || grep -sh -- "nginx" "/etc/group")"
   [ -n "$group" ] && echo "$group" | awk -F ':' '{print $1}' || return 9
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -331,13 +331,13 @@ __dnf_yum() {
   rhel_pkgmgr="$(builtin type -P dnf || builtin type -P yum || false)"
   [ "$RELEASE_VER" -lt 8 ] || opts="--allowerasing --nobest --skip-broken"
   $rhel_pkgmgr $opts "$@"
-  if rpm -q "$pkg" | grep -v 'is not installed' | grep -q '^'; then exitCode=0; else exitCode=1; fi
+  if rpm -q "$pkg" | grep -v -- 'is not installed' | grep -q -- '^'; then exitCode=0; else exitCode=1; fi
   return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-test_pkg() {
+__test_pkg() {
   for pkg in "$@"; do
-    if rpm -q "$pkg" | grep -v 'is not installed' | grep -q '^'; then
+    if rpm -q "$pkg" | grep -v -- 'is not installed' | grep -q -- '^'; then
       __printf_blue "[ ✔ ] $pkg is already installed"
       return 1
     else
@@ -346,26 +346,26 @@ test_pkg() {
   done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-remove_pkg() {
-  test_pkg "$*" &>/dev/null || __execute "__dnf_yum remove -q -y $*" "Removing: $*"
-  test_pkg "$*" &>/dev/null || return 0
+__remove_pkg() {
+  __test_pkg "$*" &>/dev/null || __execute "__dnf_yum remove -q -y $*" "Removing: $*"
+  __test_pkg "$*" &>/dev/null || return 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-install_pkg() {
+__install_pkg() {
   local statusCode=0
   excludes="$exclude_packages"
-  if test_pkg "$*"; then
+  if __test_pkg "$*"; then
     __execute "__dnf_yum install -q -yy $* $excludes" "Installing: $*"
-    test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
+    __test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
   else
     statusCode=0
   fi
   return $statusCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-detect_selinux() {
+__detect_selinux() {
   if [ -f "/etc/selinux/config" ]; then
-    grep -s 'SELINUX=' "/etc/selinux/config" | grep -q 'enabled' || return 1
+    grep -s -- 'SELINUX=' "/etc/selinux/config" | grep -q -- 'enabled' || return 1
   elif [ -f "$(type -P selinuxenabled 2>/dev/null)" ]; then
     selinuxenabled && return 1 || return 0
   else
@@ -373,8 +373,8 @@ detect_selinux() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-disable_selinux() {
-  if detect_selinux; then
+__disable_selinux() {
+  if __detect_selinux; then
     __printf_blue "selinux is now disabled"
     if [ -f "/etc/selinux/config" ]; then
       __devnull setenforce 0
@@ -393,14 +393,14 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-get_user_ssh_key() {
+__get_user_ssh_key() {
   local ssh_key=""
   local col=${COLUMNS:-120}
   local col=$(($col - 40))
   [ -n "$SSH_KEY_LOCATION" ] || return 0
   [ -d "$HOME/.ssh" ] || mkdir -p "$HOME/.ssh"
   chmod 700 "$HOME/.ssh"
-  get_keys="$(curl -q -LSsf "$SSH_KEY_LOCATION" 2>/dev/null | grep '^' || false)"
+  get_keys="$(curl -q -LSsf "$SSH_KEY_LOCATION" 2>/dev/null | grep -- '^' || false)"
   if [ -n "$get_keys" ]; then
     echo "$get_keys" | while read -r key; do
       key_value="$(echo "$key" | awk -F ' ' '{print $2}')"
@@ -417,7 +417,7 @@ get_user_ssh_key() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-run_init_check() {
+__run_init_check() {
   { printf '%b\n' "${YELLOW}Updating cache and installing epel-release${NC}" && yum makecache &>/dev/null && __dnf_yum install epel-release -yy -q &>/dev/null; } || true
   if [ -d "/usr/local/share/CasjaysDev/scripts/.git" ]; then
     git -C /usr/local/share/CasjaysDev/scripts pull -q
@@ -430,13 +430,13 @@ run_init_check() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __yum() { yum "$@" $yum_opts &>/dev/null || return 1; }
-grab_remote_file() { __urlverify "$1" && curl -q -SLs "$1" || exit 1; }
-backup_repo_files() { cp -Rf "/etc/yum.repos.d/." "$BACKUP_DIR" 2>/dev/null || return 0; }
-rm_repo_files() { [ "${1:-$YUM_DELETE}" = "yes" ] && rm -Rf "/etc/yum.repos.d"/* &>/dev/null || return 0; }
-run_external() { __printf_green "Executing $*" && eval "$*" >/dev/null 2>&1 || return 1; }
-save_remote_file() { __urlverify "$1" && curl -q -SLs "$1" | tee "$2" &>/dev/null || exit 1; }
-retrieve_version_file() { grab_remote_file "https://github.com/casjay-base/rhel/raw/main/version.txt" | head -n1 || echo "Unknown version"; }
-domain_name() { hostname -d | grep -Fv '(none)' | grep '^' || hostname -f | awk -F'.' '{$1="";OFS="." ; print $0}' | sed 's/^.//;s| |.|g' | grep '^' || echo "$HOSTNAME"; }
+__grab_remote_file() { __urlverify "$1" && curl -q -SLs "$1" || exit 1; }
+__backup_repo_files() { cp -Rf "/etc/yum.repos.d/." "$BACKUP_DIR" 2>/dev/null || return 0; }
+__rm_repo_files() { [ "${1:-$YUM_DELETE}" = "yes" ] && rm -Rf "/etc/yum.repos.d"/* &>/dev/null || return 0; }
+__run_external() { __printf_green "Executing $*" && eval "$*" >/dev/null 2>&1 || return 1; }
+__save_remote_file() { __urlverify "$1" && curl -q -SLs "$1" | tee "$2" &>/dev/null || exit 1; }
+__retrieve_version_file() { __grab_remote_file "https://github.com/casjay-base/rhel/raw/main/version.txt" | head -n1 || echo "Unknown version"; }
+__domain_name() { hostname -d | grep -Fv -- '(none)' | grep -- '^' || hostname -f | awk -F'.' '{$1="";OFS="." ; print $0}' | sed 's/^.//;s| |.|g' | grep -- '^' || echo "$HOSTNAME"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_head() {
   printf '%b##################################################\n' "$CYAN"
@@ -444,12 +444,12 @@ printf_head() {
   printf '##################################################%b\n' $NC
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_clear() {
+__printf_clear() {
   clear
   printf_head "$*"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-rm_if_exists() {
+__rm_if_exists() {
   local file_loc=("$@") && shift $#
   for file in "${file_loc[@]}"; do
     if [ -e "$file" ]; then
@@ -458,7 +458,7 @@ rm_if_exists() {
   done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-retrieve_repo_file() {
+__retrieve_repo_file() {
   local statusCode="0"
   local YUM_DELETE="true"
   yum clean all &>/dev/null
@@ -480,48 +480,48 @@ retrieve_repo_file() {
     RELEASE_FILE="https://github.com/rpm-devel/casjay-release/raw/main/$RELEASE_FILE_NAME"
   else
     yum makecache &>/dev/null
-    return
+    return 0
   fi
   if [ -n "$RELEASE_FILE" ]; then
     printf '%b\n' "${YELLOW}Updating yum repos: This may take some time${NC}"
-    backup_repo_files
-    rm_repo_files "$YUM_DELETE"
-    save_remote_file "$RELEASE_FILE" "/etc/yum.repos.d/casjay.repo"
+    __backup_repo_files
+    __rm_repo_files "$YUM_DELETE"
+    __save_remote_file "$RELEASE_FILE" "/etc/yum.repos.d/casjay.repo"
     yum makecache &>/dev/null || statusCode=1
   fi
   [ "$statusCode" -ne 0 ] || printf '%b\n' "${YELLOW}Done updating repos${NC}"
   return $statusCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-run_grub() {
+__run_grub() {
   local cfg="" efi="" grub_cfg="" grub_efi="" grub_bin="" grub_bin_name=""
-  grub_cfg="$(find /boot/grub*/* -name 'grub*.cfg' 2>/dev/null | grep '^' || false)"
-  grub_efi="$(find /boot/efi/EFI/* -name 'grub*.cfg' 2>/dev/null | grep '^' || false)"
+  grub_cfg="$(find /boot/grub*/* -name 'grub*.cfg' 2>/dev/null | grep -- '^' || false)"
+  grub_efi="$(find /boot/efi/EFI/* -name 'grub*.cfg' 2>/dev/null | grep -- '^' || false)"
   grub_bin="$(builtin type -P grub-mkconfig 2>/dev/null || builtin type -P grub2-mkconfig 2>/dev/null || false)"
   grub_bin_name="$(basename "$grub_bin" 2>/dev/null || false)"
   if [ -n "$grub_bin" ]; then
     if [ -f "/etc/default/grub" ]; then
       for opt in 'biosdevname' 'net.ifnames'; do
-        if grep -shq "$opt" '/etc/default/grub'; then
+        if grep -shq -- "$opt" '/etc/default/grub'; then
           __devnull sed -i '/^GRUB_CMDLINE_LINUX=/ s/'$opt'=[01]/'$opt'=0/' /etc/default/grub
         else
           __devnull sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ '$opt'=0"/' /etc/default/grub
         fi
       done
-      if ! stat -fc %T '/sys/fs/cgroup' | grep -q 'cgroup2fs' && ! grep -sq 'systemd.unified_cgroup_hierarchy' /etc/default/grub; then
+      if ! stat -fc %T '/sys/fs/cgroup' | grep -q -- 'cgroup2fs' && ! grep -sq -- 'systemd.unified_cgroup_hierarchy' /etc/default/grub; then
         __devnull sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ systemd.unified_cgroup_hierarchy=1"/' /etc/default/grub
       fi
     fi
-    if grep -sq 'GRUB_ENABLE_BLSCFG' "/etc/default/grub"; then
+    if grep -sq -- 'GRUB_ENABLE_BLSCFG' "/etc/default/grub"; then
       sed -i 's|GRUB_ENABLE_BLSCFG=.*|GRUB_ENABLE_BLSCFG=false|g' '/etc/default/grub'
     else
       echo "GRUB_ENABLE_BLSCFG=false" >>'/etc/default/grub'
     fi
-    # if grep -sq 'crashkernel=' '/etc/default/grub'; then
+    # if grep -sq -- 'crashkernel=' '/etc/default/grub'; then
     #   sed -i '/^GRUB_CMDLINE_LINUX=/s/crashkernel=.*[KMG][, ]//' '/etc/default/grub'
     # fi
-    rm_if_exists /boot/*rescue*
-    rm_if_exists /boot/loader/entries/*
+    __rm_if_exists /boot/*rescue*
+    __rm_if_exists /boot/loader/entries/*
     if [ -n "$grub_cfg" ]; then
       for cfg in $grub_cfg; do
         if [ -e "$cfg" ]; then
@@ -539,7 +539,7 @@ run_grub() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-run_post() {
+__run_post() {
   local e="$*"
   local m="${e//__devnull /}"
   __execute "$e" "${run_post_message:-executing: $m}"
@@ -550,16 +550,16 @@ run_post() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __kernel_ml() {
   local exitC=0
-  local kernel="$(uname -r 2>/dev/null | grep -F 'elrepo')"
-  local kernel_avail="$(yum search kernel-ml 2>&1 | awk '{print $1}' | grep '^kernel-ml-.*[.]' || return)"
+  local kernel="$(uname -r 2>/dev/null | grep -F -- 'elrepo')"
+  local kernel_avail="$(yum search kernel-ml 2>&1 | awk '{print $1}' | grep -- '^kernel-ml-.*[.]' || return)"
   if [ -n "$kernel" ]; then
     __printf_green "You are already running kernel-ml: $kernel"
   elif [ -n "$kernel_avail" ]; then
     __printf_cyan "Switching to the newest kernel from elrepo - This may take a few minutes"
-    pkgs="$(rpm -qa | grep -v 'kernel-ml' | grep '^kernel')"
+    pkgs="$(rpm -qa | grep -v -- 'kernel-ml' | grep -- '^kernel')"
     [ -n "$pkgs" ] && for pkg in $pkgs; do rpm -ev --nodeps $pkg >/dev/null 2>&1; done
     yum install -yyq kernel-ml kernel-core kernel-ml-modules kernel-ml-modules-extra kernel-ml-tools >/dev/null || exitC=1
-    run_grub
+    __run_grub
   else
     __printf_yellow "kernel-ml doesn't seem to be avaliable"
     exitC=1
@@ -569,16 +569,16 @@ __kernel_ml() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __kernel_lt() {
   local exitC=0
-  local kernel="$(uname -r 2>/dev/null | grep -F 'elrepo')"
-  local kernel_avail="$(yum search kernel-lt 2>&1 | awk '{print $1}' | grep '^kernel-lt-.*[.]' || return)"
+  local kernel="$(uname -r 2>/dev/null | grep -F -- 'elrepo')"
+  local kernel_avail="$(yum search kernel-lt 2>&1 | awk '{print $1}' | grep -- '^kernel-lt-.*[.]' || return)"
   if [ -n "$kernel" ]; then
     __printf_green "You are already running kernel-lt: $kernel"
   elif [ -n "$kernel_avail" ]; then
     __printf_cyan "Switching to the newest LTS kernel from elrepo - This may take a few minutes"
-    pkgs="$(rpm -qa | grep -v 'kernel-lt' | grep '^kernel')"
+    pkgs="$(rpm -qa | grep -v -- 'kernel-lt' | grep -- '^kernel')"
     [ -n "$pkgs" ] && for pkg in $pkgs; do rpm -ev --nodeps $pkg >/dev/null 2>&1; done
     yum install -yyq kernel-lt kernel-lt-core kernel-lt-modules kernel-lt-modules-extra kernel-lt-tools >/dev/null || exitC=1
-    run_grub
+    __run_grub
   else
     __printf_yellow "kernel-lt doesn't seem to be avaliable"
     exitC=1
@@ -586,15 +586,15 @@ __kernel_lt() {
   return $exitC
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-fix_network_device_name() {
+__fix_network_device_name() {
   local device=""
-  device="$(ip -4 route ls 2>/dev/null | grep default | grep -Po '(?<=dev )(\S+)' | head -n1 | grep '^' || echo 'eth0')"
+  device="$(ip -4 route ls 2>/dev/null | grep -- default | grep -Po -- '(?<=dev )(\S+)' | head -n1 | grep -- '^' || echo 'eth0')"
   __printf_green "Setting network device name to $device in $1"
   find "$1" -type f -exec sed -i 's|eth0|'$device'|g' {} +
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##################################################################################################################
-printf_clear "Initializing the installer for $RELEASE_NAME using $SCRIPT_DESCRIBE script"
+__printf_clear "Initializing the installer for $RELEASE_NAME using $SCRIPT_DESCRIBE script"
 ##################################################################################################################
 [ -d "/etc/casjaysdev/updates/versions" ] || mkdir -p "/etc/casjaysdev/updates/versions"
 if [ -f "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt" ]; then
@@ -608,10 +608,10 @@ elif [ -f "/etc/casjaysdev/updates/versions/installed.txt" ]; then
   __printf_red "/etc/casjaysdev/updates/versions/installed.txt"
   exit 1
 else
-  run_init_check
-  if ! retrieve_repo_file; then
-    __devnull rm_if_exists "/etc/casjaysdev/updates/versions/installed.txt"
-    __devnull rm_if_exists "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt"
+  __run_init_check
+  if ! __retrieve_repo_file; then
+    __devnull __rm_if_exists "/etc/casjaysdev/updates/versions/installed.txt"
+    __devnull __rm_if_exists "/etc/casjaysdev/updates/versions/$SCRIPT_NAME.txt"
     __printf_red "The script has failed to initialize"
     exit 2
   fi
@@ -620,10 +620,10 @@ else
   fi
 fi
 if [ -n "$(type -P systemmgr)" ]; then
-  run_external /usr/local/share/CasjaysDev/scripts/install.sh
-  run_external /usr/local/share/CasjaysDev/scripts/bin/systemmgr --config
-  run_external /usr/local/share/CasjaysDev/scripts/bin/systemmgr update scripts
-  run_external "__yum clean all"
+  __run_external /usr/local/share/CasjaysDev/scripts/install.sh
+  __run_external /usr/local/share/CasjaysDev/scripts/bin/systemmgr --config
+  __run_external /usr/local/share/CasjaysDev/scripts/bin/systemmgr update scripts
+  __run_external "__yum clean all"
 fi
 __printf_green "Installer has been initialized"
 ##################################################################################################################
@@ -634,30 +634,30 @@ __devnull yum -yy --allowerasing install initscripts net-tools
 ##################################################################################################################
 printf_head "Installing vnstat"
 ##################################################################################################################
-install_pkg vnstat
+__install_pkg vnstat
 system_service_enable vnstat && systemctl restart vnstat &>/dev/null
 ##################################################################################################################
 printf_head "Configuring the kernel"
 ##################################################################################################################
 if [ "$DEFAULT_KERNEL" = "ml" ] || [ "$DEFAULT_KERNEL" = "kernel-ml" ]; then
   __kernel_ml
-  install_pkg kernel-ml-modules
-  install_pkg kernel-ml-modules-extra
+  __install_pkg kernel-ml-modules
+  __install_pkg kernel-ml-modules-extra
 elif [ "$DEFAULT_KERNEL" = "lt" ] || [ "$DEFAULT_KERNEL" = "kernel-lt" ]; then
   __kernel_lt
-  install_pkg kernel-lt-modules
-  install_pkg kernel-lt-modules-extra
+  __install_pkg kernel-lt-modules
+  __install_pkg kernel-lt-modules-extra
 else
   DEFAULT_KERNEL="kernel"
 fi
 ##################################################################################################################
 printf_head "Disabling selinux"
 ##################################################################################################################
-disable_selinux
+__disable_selinux
 ##################################################################################################################
 printf_head "Configuring cores for compiling"
 ##################################################################################################################
-numberofcores=$(grep -c ^processor /proc/cpuinfo)
+numberofcores=$(grep -c -- ^processor /proc/cpuinfo)
 __printf_yellow "Total cores avaliable: $numberofcores"
 if [ $numberofcores -gt 1 ]; then
   if [ -f "/etc/makepkg.conf" ]; then
@@ -719,41 +719,41 @@ fi
 ##################################################################################################################
 printf_head "Grabbing ssh key[s]: from $SSH_KEY_LOCATION for $USER"
 ##################################################################################################################
-get_user_ssh_key
+__get_user_ssh_key
 ##################################################################################################################
 printf_head "Configuring the system"
 ##################################################################################################################
-retrieve_repo_file
-run_external timedatectl set-timezone America/New_York
+__retrieve_repo_file
+__run_external timedatectl set-timezone America/New_York
 for oci in 'oci*' 'cloud*' 'oracle*'; do __yum remove -yy -q "$oci" &>/dev/null; done
 for rpms in echo chrony cronie-anacron sendmail sendmail-cf esmtp; do rpm -ev --nodeps $rpms &>/dev/null; done
-install_pkg cronie-noanacron
-install_pkg postfix
-install_pkg net-tools
-install_pkg wget
-install_pkg curl
-install_pkg git
-install_pkg nail
-install_pkg e2fsprogs
-install_pkg redhat-lsb
-install_pkg vim
-install_pkg unzip
-install_pkg bind
-install_pkg bind-utils
-rm_if_exists /tmp/dotfiles
-rm_if_exists /root/anaconda-ks.cfg /var/log/anaconda
-run_external yum update -q -yy --skip-broken
-[ $RELEASE_VER -ge 9 ] && install_pkg glibc-langpack-en
+__install_pkg cronie-noanacron
+__install_pkg postfix
+__install_pkg net-tools
+__install_pkg wget
+__install_pkg curl
+__install_pkg git
+__install_pkg nail
+__install_pkg e2fsprogs
+__install_pkg redhat-lsb
+__install_pkg vim
+__install_pkg unzip
+__install_pkg bind
+__install_pkg bind-utils
+__rm_if_exists /tmp/dotfiles
+__rm_if_exists /root/anaconda-ks.cfg /var/log/anaconda
+__run_external yum update -q -yy --skip-broken
+[ $RELEASE_VER -ge 9 ] && __install_pkg glibc-langpack-en
 ##################################################################################################################
 printf_head "Enabling ip forwarding"
 ##################################################################################################################
 for sysctlconf in /etc/sysctl.conf /etc/sysctl.d/*; do
-  if grep -qsF 'net.ipv4.ip_forward' "$sysctlconf"; then
+  if grep -qsF -- 'net.ipv4.ip_forward' "$sysctlconf"; then
     __devnull sed -i 's/net.ipv4.ip_forward.*/net.ipv4.ip_forward=1/g' "$sysctlconf"
   else
     sysctl_ip4_forward=0
   fi
-  if grep -qsFR 'net.ipv6.conf.all.forwarding' "$sysctlconf"; then
+  if grep -qsFR -- 'net.ipv6.conf.all.forwarding' "$sysctlconf"; then
     __devnull sed -i 's/net.ipv6.conf.all.forwarding.*/net.ipv6.conf.all.forwarding=1/g' "$sysctlconf"
   else
     sysctl_ip6_forward=0
@@ -770,241 +770,241 @@ fi
 ##################################################################################################################
 printf_head "Installing the packages for $RELEASE_NAME"
 ##################################################################################################################
-install_pkg awffull
-install_pkg awstats
-install_pkg basesystem
-install_pkg bash
-install_pkg bash-completion
-install_pkg biosdevname
-install_pkg certbot
-install_pkg cockpit
-install_pkg cockpit-packagekit
-install_pkg cockpit-storaged
-install_pkg cockpit-pcp
-install_pkg cockpit-bridge
-install_pkg cockpit-system
-install_pkg cockpit-ws
-install_pkg coreutils
-install_pkg cowsay
-install_pkg cracklib
-install_pkg cracklib-dicts
-install_pkg cronie
-install_pkg cronie-noanacron
-install_pkg crontabs
-install_pkg curl
-install_pkg ctags
-install_pkg deltarpm
-install_pkg dialog
-install_pkg docker-ce
-install_pkg ethtool
-install_pkg findutils
-install_pkg fortune-mod
-install_pkg gawk
-install_pkg gc
-install_pkg gcc
-install_pkg git
-install_pkg gnupg2
-install_pkg gnutls
-install_pkg grub2
-install_pkg grub2-tools-extra
-install_pkg grubby
-install_pkg gzip
-install_pkg hardlink
-install_pkg harfbuzz
-install_pkg hdparm
-install_pkg hostname
-install_pkg htop
-install_pkg httpd
-install_pkg less
-install_pkg logrotate
-install_pkg lsof
-install_pkg mailx
-install_pkg make
-install_pkg man-db
-install_pkg man-pages
-install_pkg mlocate
-install_pkg mod_fcgid
-install_pkg mod_geoip
-install_pkg mod_http2
-install_pkg mod_maxminddb
-install_pkg mod_perl
-install_pkg mod_ssl
-install_pkg mod_wsgi
-install_pkg mod_proxy_html
-install_pkg mod_proxy_uwsgi
-install_pkg mosh
-install_pkg mrtg
-install_pkg munin
-install_pkg munin-common
-install_pkg munin-node
-install_pkg ncurses
-install_pkg ncurses-base
-install_pkg ncurses-libs
-install_pkg net-tools
-install_pkg nginx
-install_pkg ntp
-install_pkg oddjob-mkhomedir
-install_pkg openssh-server
-install_pkg openssl
-install_pkg passwd
-install_pkg perl-CPAN
-install_pkg perl-CPAN-Meta
-install_pkg perl-DBD-Pg
-install_pkg perl-DBD-MySQL
-install_pkg perl-DBD-SQLite
-install_pkg perl-DBD-MariaDB
-install_pkg perl-DBD-Firebird
-install_pkg php
-install_pkg php-cli
-install_pkg php-common
-install_pkg php-fpm
-install_pkg php-gd
-install_pkg php-gmp
-install_pkg php-intl
-install_pkg php-mbstring
-install_pkg php-mysqlnd
-install_pkg php-pdo
-install_pkg php-pgsql
-install_pkg php-xml
-install_pkg pinentry
-install_pkg postfix
-install_pkg postfix-pcre
-install_pkg python3-certbot-dns-rfc2136
-install_pkg python3-configargparse
-install_pkg python3-cryptography
-install_pkg python3-enum34
-install_pkg python3-funcsigs
-install_pkg python3-future
-install_pkg python3-idna
-install_pkg python3-josepy
-install_pkg python3-mock
-install_pkg python3-neovim
-install_pkg python3-parsedatetime
-install_pkg python3-pbr
-install_pkg python3-pip
-install_pkg python3-psutil
-install_pkg python3-pyasn1
-install_pkg python3-pyrfc3339
-install_pkg python3-pysocks
-install_pkg python3-requests
-install_pkg python3-six
-install_pkg python3-virtualenv
-install_pkg readline
-install_pkg rootfiles
-install_pkg rsync
-install_pkg rsyslog
-install_pkg screen
-install_pkg sed
-install_pkg sqlite
-install_pkg sudo
-install_pkg symlinks
-install_pkg tar
-install_pkg tzdata
-install_pkg unzip
-install_pkg webalizer
-install_pkg wget
-install_pkg which
-install_pkg whois
-install_pkg xz
-install_pkg xz-libs
-install_pkg yum-utils
-install_pkg zip
-install_pkg zlib
+__install_pkg awffull
+__install_pkg awstats
+__install_pkg basesystem
+__install_pkg bash
+__install_pkg bash-completion
+__install_pkg biosdevname
+__install_pkg certbot
+__install_pkg cockpit
+__install_pkg cockpit-packagekit
+__install_pkg cockpit-storaged
+__install_pkg cockpit-pcp
+__install_pkg cockpit-bridge
+__install_pkg cockpit-system
+__install_pkg cockpit-ws
+__install_pkg coreutils
+__install_pkg cowsay
+__install_pkg cracklib
+__install_pkg cracklib-dicts
+__install_pkg cronie
+__install_pkg cronie-noanacron
+__install_pkg crontabs
+__install_pkg curl
+__install_pkg ctags
+__install_pkg deltarpm
+__install_pkg dialog
+__install_pkg docker-ce
+__install_pkg ethtool
+__install_pkg findutils
+__install_pkg fortune-mod
+__install_pkg gawk
+__install_pkg gc
+__install_pkg gcc
+__install_pkg git
+__install_pkg gnupg2
+__install_pkg gnutls
+__install_pkg grub2
+__install_pkg grub2-tools-extra
+__install_pkg grubby
+__install_pkg gzip
+__install_pkg hardlink
+__install_pkg harfbuzz
+__install_pkg hdparm
+__install_pkg hostname
+__install_pkg htop
+__install_pkg httpd
+__install_pkg less
+__install_pkg logrotate
+__install_pkg lsof
+__install_pkg mailx
+__install_pkg make
+__install_pkg man-db
+__install_pkg man-pages
+__install_pkg mlocate
+__install_pkg mod_fcgid
+__install_pkg mod_geoip
+__install_pkg mod_http2
+__install_pkg mod_maxminddb
+__install_pkg mod_perl
+__install_pkg mod_ssl
+__install_pkg mod_wsgi
+__install_pkg mod_proxy_html
+__install_pkg mod_proxy_uwsgi
+__install_pkg mosh
+__install_pkg mrtg
+__install_pkg munin
+__install_pkg munin-common
+__install_pkg munin-node
+__install_pkg ncurses
+__install_pkg ncurses-base
+__install_pkg ncurses-libs
+__install_pkg net-tools
+__install_pkg nginx
+__install_pkg ntp
+__install_pkg oddjob-mkhomedir
+__install_pkg openssh-server
+__install_pkg openssl
+__install_pkg passwd
+__install_pkg perl-CPAN
+__install_pkg perl-CPAN-Meta
+__install_pkg perl-DBD-Pg
+__install_pkg perl-DBD-MySQL
+__install_pkg perl-DBD-SQLite
+__install_pkg perl-DBD-MariaDB
+__install_pkg perl-DBD-Firebird
+__install_pkg php
+__install_pkg php-cli
+__install_pkg php-common
+__install_pkg php-fpm
+__install_pkg php-gd
+__install_pkg php-gmp
+__install_pkg php-intl
+__install_pkg php-mbstring
+__install_pkg php-mysqlnd
+__install_pkg php-pdo
+__install_pkg php-pgsql
+__install_pkg php-xml
+__install_pkg pinentry
+__install_pkg postfix
+__install_pkg postfix-pcre
+__install_pkg python3-certbot-dns-rfc2136
+__install_pkg python3-configargparse
+__install_pkg python3-cryptography
+__install_pkg python3-enum34
+__install_pkg python3-funcsigs
+__install_pkg python3-future
+__install_pkg python3-idna
+__install_pkg python3-josepy
+__install_pkg python3-mock
+__install_pkg python3-neovim
+__install_pkg python3-parsedatetime
+__install_pkg python3-pbr
+__install_pkg python3-pip
+__install_pkg python3-psutil
+__install_pkg python3-pyasn1
+__install_pkg python3-pyrfc3339
+__install_pkg python3-pysocks
+__install_pkg python3-requests
+__install_pkg python3-six
+__install_pkg python3-virtualenv
+__install_pkg readline
+__install_pkg rootfiles
+__install_pkg rsync
+__install_pkg rsyslog
+__install_pkg screen
+__install_pkg sed
+__install_pkg sqlite
+__install_pkg sudo
+__install_pkg symlinks
+__install_pkg tar
+__install_pkg tzdata
+__install_pkg unzip
+__install_pkg webalizer
+__install_pkg wget
+__install_pkg which
+__install_pkg whois
+__install_pkg xz
+__install_pkg xz-libs
+__install_pkg yum-utils
+__install_pkg zip
+__install_pkg zlib
 ##################################################################################################################
 if [ "$SYSTEM_TYPE" = "dns" ]; then
-  if __devnull install_pkg ntp || __devnull install_pkg ntpsec; then
+  if __devnull __install_pkg ntp || __devnull __install_pkg ntpsec; then
     __printf_cyan "Installed ntp"
     SERVICES_ENABLE="$SERVICES_ENABLE ntpd"
     [ -d "/var/lib/ntp/stats" ] || mkdir -p "/var/lib/ntp/stats"
   fi
 else
-  install_pkg chrony
+  __install_pkg chrony
   SERVICES_ENABLE="$SERVICES_ENABLE chrony"
 fi
 ##################################################################################################################
 printf_head "Fixing grub"
 ##################################################################################################################
-run_grub
+__run_grub
 ##################################################################################################################
 printf_head "Installing custom web server files"
 ##################################################################################################################
-[ -d "$CONFIG_TEMP_DIR" ] && __devnull rm_if_exists "$CONFIG_TEMP_DIR"
+[ -d "$CONFIG_TEMP_DIR" ] && __devnull __rm_if_exists "$CONFIG_TEMP_DIR"
 __devnull git clone -q "https://github.com/casjay-base/rhel" "$CONFIG_TEMP_DIR"
 if [ -d "/var/www/html/sysinfo/.git" ]; then
   __devnull git -C "/var/www/html/sysinfo" reset --hard
-  run_post git -C "/var/www/html/sysinfo" pull -q
+  __run_post git -C "/var/www/html/sysinfo" pull -q
 else
-  __devnull rm_if_exists "/var/www/html/sysinfo"
-  run_post git clone -q "https://github.com/phpsysinfo/phpsysinfo" "/var/www/html/sysinfo"
+  __devnull __rm_if_exists "/var/www/html/sysinfo"
+  __run_post git clone -q "https://github.com/phpsysinfo/phpsysinfo" "/var/www/html/sysinfo"
 fi
 if [ -d "/var/www/html/vnstat/.git" ]; then
   __devnull git -C "/var/www/html/vnstat" reset --hard
-  run_post git -C "/var/www/html/vnstat" pull -q
+  __run_post git -C "/var/www/html/vnstat" pull -q
 else
-  __devnull rm_if_exists "/var/www/html/vnstat"
-  run_post git clone -q "https://github.com/solbu/vnstat-php-frontend" "/var/www/html/vnstat"
+  __devnull __rm_if_exists "/var/www/html/vnstat"
+  __run_post git clone -q "https://github.com/solbu/vnstat-php-frontend" "/var/www/html/vnstat"
 fi
-run_post_message="Installing default server files" run_post sudo -HE STATICSITE="$(hostname -f)" bash -c "$(curl -LSs "https://github.com/casjay-templates/default-web-assets/raw/main/setup.sh")"
+run_post_message="Installing default server files" __run_post sudo -HE STATICSITE="$(hostname -f)" bash -c "$(curl -LSs "https://github.com/casjay-templates/default-web-assets/raw/main/setup.sh")"
 [ -f "/etc/httpd/modules/mod_wsgi_python3.so" ] && ln -sf /etc/httpd/modules/mod_wsgi_python3.so /etc/httpd/modules/mod_wsgi.so
 ##################################################################################################################
 printf_head "Deleting files"
 ##################################################################################################################
-if system_service_active named || port_in_use "53"; then
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/named*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/var/named*
+if __system_service_active named || __port_in_use "53"; then
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/var/named*
 else
-  __devnull rm_if_exists /etc/named* /var/named/*
+  __devnull __rm_if_exists /etc/named* /var/named/*
 fi
 if [ -z "$(type -p ntp || type -p ntpd || type -p ntpq)" ]; then
   IS_INSTALLED_NTP=no
-  __devnull rm_if_exists /etc/ntp*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/ntp*
+  __devnull __rm_if_exists /etc/ntp*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/ntp*
 fi
 if [ -z "$(type -p chronyd)" ]; then
   IS_INSTALLED_CHRONY=no
-  __devnull rm_if_exists /etc/chrony*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/chrony*
+  __devnull __rm_if_exists /etc/chrony*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/chrony*
 fi
 if [ -z "$(type -P httpd)" ]; then
   IS_INSTALLED_HTTPD=no
-  __devnull rm_if_exists /etc/httpd*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/httpd*
+  __devnull __rm_if_exists /etc/httpd*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/httpd*
 fi
 if [ -z "$(type -P nginx)" ]; then
   IS_INSTALLED_NGINX=no
-  __devnull rm_if_exists /etc/nginx*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/nginx*
+  __devnull __rm_if_exists /etc/nginx*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/nginx*
 fi
 if [ -z "$(type -P named)" ]; then
   IS_INSTALLED_BIND=no
-  __devnull rm_if_exists /etc/named*
-  __devnull rm_if_exists /var/named*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/named*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/var/named*
+  __devnull __rm_if_exists /etc/named*
+  __devnull __rm_if_exists /var/named*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/var/named*
 fi
 if [ -z "$(type -P proftpd)" ]; then
   IS_INSTALLED_PROFTPD=no
-  __devnull rm_if_exists /etc/proftpd*
-  __devnull rm_if_exists $CONFIG_TEMP_DIR/etc/proftpd*
+  __devnull __rm_if_exists /etc/proftpd*
+  __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/proftpd*
 fi
 if [ -f "/etc/certbot/dns.conf" ]; then
-  __devnull rm_if_exists "$CONFIG_TEMP_DIR/etc/certbot/dns.conf"
+  __devnull __rm_if_exists "$CONFIG_TEMP_DIR/etc/certbot/dns.conf"
 fi
 for rm_file in /etc/cron*/0* /etc/cron*/dailyjobs /var/ftp/uploads /etc/httpd/conf.d/ssl.conf; do
-  run_post __devnull rm_if_exists "$rm_file"
+  __run_post __devnull __rm_if_exists "$rm_file"
 done
 ##################################################################################################################
 printf_head "setting up config files"
 ##################################################################################################################
-set_domainname="$(domain_name)"
+set_domainname="$(__domain_name)"
 myhostnameshort="$SET_HOSTNAME"
 myserverdomainname="$(hostname -f)"
-NETDEV="$(ip route | grep 'default' | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
-does_lo_have_ipv6="$(ifconfig lo | grep 'inet6' | grep -q '::1' && echo yes || false)"
+NETDEV="$(ip route | grep -- 'default' | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
+does_lo_have_ipv6="$(ifconfig lo | grep -- 'inet6' | grep -q -- '::1' && echo yes || false)"
 GET_WEB_USER="$(__get_www_user)"
 GET_WEB_GROUP="$(__get_www_group)"
-[ -n "$NETDEV" ] && mycurrentipaddress_6="$(ifconfig $NETDEV | grep -E 'venet|inet' | grep -v 'docker' | grep inet6 | grep -i 'global' | awk '{print $2}' | head -n1 | grep '^' || hostname -I | tr ' ' '\n' | grep -Ev '^::1|^$' | grep ':.*:' | head -n1 | grep '^' || echo '::1')"
-[ -n "$NETDEV" ] && mycurrentipaddress_4="$(ifconfig $NETDEV | grep -E 'venet|inet' | grep -v '127.0.0.' | grep inet | grep -v 'inet6' | awk '{print $2}' | sed 's#addr:##g' | head -n1 | grep '^' || hostname -I | tr ' ' '\n' | grep -vE '|127\.0\.0|172\.17\.0|:.*:|^$' | head -n1 | grep '[0-9]\.[0-9]' || echo '127.0.0.1')"
+[ -n "$NETDEV" ] && mycurrentipaddress_6="$(ifconfig $NETDEV | grep -E -- 'venet|inet' | grep -v -- 'docker' | grep -- inet6 | grep -i -- 'global' | awk '{print $2}' | head -n1 | grep -- '^' || hostname -I | tr ' ' '\n' | grep -Ev -- '^::1|^$' | grep -- ':.*:' | head -n1 | grep -- '^' || echo '::1')"
+[ -n "$NETDEV" ] && mycurrentipaddress_4="$(ifconfig $NETDEV | grep -E -- 'venet|inet' | grep -v -- '127.0.0.' | grep -- inet | grep -v -- 'inet6' | awk '{print $2}' | sed 's#addr:##g' | head -n1 | grep -- '^' || hostname -I | tr ' ' '\n' | grep -vE -- '|127\.0\.0|172\.17\.0|:.*:|^$' | head -n1 | grep -- '[0-9]\.[0-9]' || echo '127.0.0.1')"
 __devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.sh" -exec chmod 755 {} \;
 __devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.pl" -exec chmod 755 {} \;
 __devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.cgi" -exec chmod 755 {} \;
@@ -1023,7 +1023,7 @@ fi
 if [ -z "$does_lo_have_ipv6" ]; then
   sed -i 's|inet_interfaces.*|inet_interfaces = 127.0.0.1|g' $CONFIG_TEMP_DIR/etc/postfix/main.cf
 fi
-__devnull rm_if_exists $CONFIG_TEMP_DIR/etc/{fail2ban,shorewall,shorewall6}
+__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/{fail2ban,shorewall,shorewall6}
 __devnull mkdir -p /etc/rsync.d /var/log/named
 __devnull rsync -avhP $CONFIG_TEMP_DIR/{etc,root,usr,var}* /
 # mod_geoip has no installable package on EL9/10 (the legacy Apache GeoIP
@@ -1050,16 +1050,16 @@ __devnull chmod 644 -Rf /etc/cron.d/* /etc/logrotate.d/*
 __devnull touch /etc/postfix/mydomains.pcre
 __devnull chattr +i /etc/resolv.conf
 if [ -z "$IS_INSTALLED_BIND" ]; then
-  if does_user_exist 'named'; then
+  if __does_user_exist 'named'; then
     __devnull mkdir -p /etc/named /var/named /var/log/named
     __devnull chown -Rf named:named /etc/named* /var/named /var/log/named
   fi
 fi
 if [ -z "$(type -P postfix)" ]; then
-  rm_if_exists /etc/postfix
+  __rm_if_exists /etc/postfix
 else
   for postfix_proto in "/etc/postfix"/*.proto; do
-    __devnull rm_if_exists $postfix_proto
+    __devnull __rm_if_exists $postfix_proto
   done
   __devnull chgrp postdrop /usr/sbin/postqueue
   __devnull chgrp postdrop /usr/sbin/postdrop
@@ -1073,7 +1073,7 @@ else
   __devnull postmap /etc/postfix/transport /etc/postfix/canonical /etc/postfix/virtual /etc/postfix/mydomains /etc/postfix/sasl/passwd
   __devnull newaliases &>/dev/null || newaliases.postfix -I &>/dev/null
 fi
-if ! grep -sq 'kernel.domainname' "/etc/sysctl.conf"; then
+if ! grep -sq -- 'kernel.domainname' "/etc/sysctl.conf"; then
   echo "kernel.domainname=$set_domainname" >>/etc/sysctl.conf
 fi
 __devnull systemctl daemon-reload
@@ -1086,20 +1086,20 @@ incus_setup_message="Initializing incus has failed"
 exclude_packages="--exclude=qemu*-9*"
 __devnull crb enable
 __devnull yum clean packages
-if ! grep -Rqsi 'copr.*incus' '/etc/yum.repos.d'; then
+if ! grep -Rqsi -- 'copr.*incus' '/etc/yum.repos.d'; then
   __printf_green "Enabling the dnf incus repo"
   __devnull dnf -y install epel-release
   __devnull dnf -y copr enable neil/incus
   __devnull dnf -y config-manager --enable crb
   __yum makecache
 fi
-install_pkg incus
-install_pkg incus-tools
-install_pkg incus-selinux
+__install_pkg incus
+__install_pkg incus-tools
+__install_pkg incus-selinux
 unset exclude_packages
 [ -n "$(type -p setupmgr)" ] && setupmgr incus
 echo "0:1000000:1000000000" | tee /etc/subuid /etc/subgid >/dev/null
-if system_service_exists "incus"; then
+if __system_service_exists "incus"; then
   __devnull systemctl start "incus"
   __devnull systemctl restart "incus"
   __devnull systemctl enable --now incus || incus_setup_failed="yes"
@@ -1121,7 +1121,7 @@ fi
 ##################################################################################################################
 printf_head "Configuring the firewall"
 ##################################################################################################################
-if type -P firewall-cmd >/dev/null 2>&1 && system_service_active firewalld; then
+if type -P firewall-cmd >/dev/null 2>&1 && __system_service_active firewalld; then
 	__devnull systemctl start firewalld
 	# firewalld stays wide open (fail2ban's firewallcmd-ipset banaction does
 	# the actual blocking) - see etc/firewalld/zones/public.xml and
@@ -1208,7 +1208,7 @@ printf_head "Setting up ssl certificates"
 ##################################################################################################################
 ## If using letsencrypt certificates
 [ -f "$HOME/.config/myscripts/acme-cli/settings.conf" ] && . "$HOME/.config/myscripts/acme-cli/settings.conf"
-le_primary_domain="$(echo "$(hostname -d 2>/dev/null | grep '^' || hostname -f 2>/dev/null)" | grep -E '.*[a-zA-Z0-9][.][a-zA-Z0-9]' | grep '^' || false)"
+le_primary_domain="$(echo "$(hostname -d 2>/dev/null | grep -- '^' || hostname -f 2>/dev/null)" | grep -E -- '.*[a-zA-Z0-9][.][a-zA-Z0-9]' | grep -- '^' || false)"
 if [ -n "$le_primary_domain" ]; then
   le_certs="yes"
   le_options="--primary $le_primary_domain"
@@ -1219,10 +1219,10 @@ if [ -n "$le_primary_domain" ]; then
     if [ -n "$(command -v acme-cli 2>/dev/null)" ]; then
       if [ -z "$le_domain_list" ]; then
         __printf_cyan "Attempting to get certificates from letsencrypt for $le_primary_domain and *.$le_primary_domain"
-        run_post acme-cli --init $le_options
+        __run_post acme-cli --init $le_options
       else
         __printf_cyan "Attempting to get certificates from letsencrypt for $le_primary_domain and all domains in var: le_domain_list"
-        run_post acme-cli --init --no-test --no-subs
+        __run_post acme-cli --init --no-test --no-subs
       fi
     fi
   fi
@@ -1231,7 +1231,7 @@ if [ -n "$le_primary_domain" ]; then
     find /etc/postfix /etc/httpd /etc/nginx -type f -exec sed -i 's#/etc/ssl/CA/CasjaysDev/certs/localhost.crt#/etc/letsencrypt/live/domain/fullchain.pem#g' {} \;
     find /etc/postfix /etc/httpd /etc/nginx -type f -exec sed -i 's#/etc/ssl/CA/CasjaysDev/private/localhost.key#/etc/letsencrypt/live/domain/privkey.pem#g' {} \;
     if [ -d "/etc/cockpit/ws-certs.d" ]; then
-      __devnull rm_if_exists "/etc/cockpit/ws-certs.d"/*
+      __devnull __rm_if_exists "/etc/cockpit/ws-certs.d"/*
       cat /etc/letsencrypt/live/domain/fullchain.pem >/etc/cockpit/ws-certs.d/1-my-cert.cert
       cat /etc/letsencrypt/live/domain/privkey.pem >/etc/cockpit/ws-certs.d/1-my-cert.key
       chmod -f 644 /etc/cockpit/ws-certs.d/1-my-cert.cert
@@ -1331,14 +1331,14 @@ printf_head "Setting up munin-node"
 ##################################################################################################################
 mkdir -p "/var/log/munin"
 chmod -f 777 "/var/log/munin"
-does_user_exist 'munin' && chown -Rf "munin" "/var/log/munin"
-does_group_exist "munin" && chgrp -Rf "munin" "/var/log/munin"
-does_user_exist 'munin-node' && chown -Rf "munin" "/var/log/munin-node"
-does_group_exist "munin-node" && chgrp -Rf "munin" "/var/log/munin-node"
-run_post "munin-node-configure --remove-also --shell" >/dev/null 2>/dev/null
+__does_user_exist 'munin' && chown -Rf "munin" "/var/log/munin"
+__does_group_exist "munin" && chgrp -Rf "munin" "/var/log/munin"
+__does_user_exist 'munin-node' && chown -Rf "munin" "/var/log/munin-node"
+__does_group_exist "munin-node" && chgrp -Rf "munin" "/var/log/munin-node"
+__run_post "munin-node-configure --remove-also --shell" >/dev/null 2>/dev/null
 # Plugin credentials ship as the non-functional token CHANGEME_AT_BOOTSTRAP so a
 # real password is never committed - say so loudly instead of failing silently
-if grep -q 'CHANGEME_AT_BOOTSTRAP' "/etc/munin/plugin-conf.d/munin-node" 2>/dev/null; then
+if grep -q -- 'CHANGEME_AT_BOOTSTRAP' "/etc/munin/plugin-conf.d/munin-node" 2>/dev/null; then
   __printf_yellow "Placeholder credentials remain in /etc/munin/plugin-conf.d/munin-node"
   __printf_yellow "Set the real passwords there, or delete the sections you do not monitor"
 fi
@@ -1350,9 +1350,9 @@ printf_head "Setting up tor"
 ##################################################################################################################
 if [ -n "$(type -P tor 2>/dev/null)" ]; then
   __devnull systemctl restart tor && sleep 5
-  tor_hostnames="$(find "/var/lib/tor/hidden_service" -type f -name 'hostname' 2>/dev/null | grep '^' || false)"
+  tor_hostnames="$(find "/var/lib/tor/hidden_service" -type f -name 'hostname' 2>/dev/null | grep -- '^' || false)"
   if [ -n "$tor_hostnames" ]; then
-    __devnull rm_if_exists "/var/www/html/tor_hostname"
+    __devnull __rm_if_exists "/var/www/html/tor_hostname"
     for f in $tor_hostnames; do
       cat "$f" >>"/var/www/html/tor_hostname" 2>/dev/null
     done
@@ -1363,10 +1363,10 @@ fi
 printf_head "Setting up bind dns [named]"
 ##################################################################################################################
 if [ -z "$(command -v named)" ]; then
-  __devnull rm_if_exists /etc/named
-  __devnull rm_if_exists /var/named
-  __devnull rm_if_exists /var/log/named
-  __devnull rm_if_exists /etc/logrotate.d/named
+  __devnull __rm_if_exists /etc/named
+  __devnull __rm_if_exists /var/named
+  __devnull __rm_if_exists /var/log/named
+  __devnull __rm_if_exists /etc/logrotate.d/named
 fi
 ##################################################################################################################
 printf_head "Generating default webserver for $HOSTNAME"
@@ -1390,15 +1390,15 @@ fi
 if [ -n "$GET_WEB_USER" ]; then
   if [ -f "/etc/nginx/nginx.conf" ]; then
     sed -i '0,/^user .*/s//user  '$GET_WEB_USER';/' "/etc/nginx/nginx.conf"
-    grep -sqh "^user  $GET_WEB_USER" "/etc/nginx/nginx.conf" || echo "Failed to change the user in /etc/nginx/nginx.conf"
+    grep -sqh -- "^user  $GET_WEB_USER" "/etc/nginx/nginx.conf" || echo "Failed to change the user in /etc/nginx/nginx.conf"
   fi
   if [ -f "/etc/php-fpm.d/www.conf" ]; then
     sed -i '0,/^user .*/s//user = '$GET_WEB_USER'/' "/etc/php-fpm.d/www.conf"
-    grep -sqh "^user = $GET_WEB_USER" "/etc/php-fpm.d/www.conf" || echo "Failed to change the user in /etc/php-fpm.d/www.conf"
+    grep -sqh -- "^user = $GET_WEB_USER" "/etc/php-fpm.d/www.conf" || echo "Failed to change the user in /etc/php-fpm.d/www.conf"
   fi
   if [ -f "/etc/httpd/conf/httpd.conf" ]; then
     sed -i '0,/^User .*/s//User '$GET_WEB_USER'/' "/etc/httpd/conf/httpd.conf"
-    grep -sqh "^User $GET_WEB_USER" "/etc/httpd/conf/httpd.conf" || echo "Failed to change the user in /etc/httpd/conf/httpd.conf"
+    grep -sqh -- "^User $GET_WEB_USER" "/etc/httpd/conf/httpd.conf" || echo "Failed to change the user in /etc/httpd/conf/httpd.conf"
   fi
   for apache_dir in "/usr/local/share/httpd" "/var/www"; do
     [ -d "$apache_dir" ] && chown -Rf $GET_WEB_USER "$apache_dir"
@@ -1407,11 +1407,11 @@ fi
 if [ -n "$GET_WEB_GROUP" ]; then
   if [ -f "/etc/php-fpm.d/www.conf" ]; then
     sed -i '0,/^group .*/s//group = '$GET_WEB_GROUP'/' "/etc/php-fpm.d/www.conf"
-    grep -sqh "^group = $GET_WEB_GROUP" "/etc/php-fpm.d/www.conf" || echo "Failed to change the group in /etc/php-fpm.d/www.conf"
+    grep -sqh -- "^group = $GET_WEB_GROUP" "/etc/php-fpm.d/www.conf" || echo "Failed to change the group in /etc/php-fpm.d/www.conf"
   fi
   if [ -f "/etc/httpd/conf/httpd.conf" ]; then
     sed -i '0,/^Group .*/s//Group '$GET_WEB_GROUP'/' "/etc/httpd/conf/httpd.conf"
-    grep -sqh "^Group $GET_WEB_GROUP" "/etc/httpd/conf/httpd.conf" || echo "Failed to change the group in /etc/httpd/conf/httpd.conf"
+    grep -sqh -- "^Group $GET_WEB_GROUP" "/etc/httpd/conf/httpd.conf" || echo "Failed to change the group in /etc/httpd/conf/httpd.conf"
   fi
   for apache_dir in "/usr/local/share/httpd" "/var/www"; do
     [ -d "$apache_dir" ] && chgrp -Rf $GET_WEB_GROUP "$apache_dir"
@@ -1482,16 +1482,16 @@ mount -a
 ##################################################################################################################
 printf_head "Installing custom system configs"
 ##################################################################################################################
-run_post "systemmgr install $SYSTEMMGR_CONFIGS"
+__run_post "systemmgr install $SYSTEMMGR_CONFIGS"
 ##################################################################################################################
 printf_head "Installing custom dotfiles"
 ##################################################################################################################
-run_post "dfmgr update $DFMGR_CONFIGS"
+__run_post "dfmgr update $DFMGR_CONFIGS"
 ##################################################################################################################
 printf_head "Updating personal dotfiles"
 ##################################################################################################################
 if [ -x "$HOME/.local/dotfiles/personal/install.sh" ]; then
-  run_external "$HOME/.local/dotfiles/personal/install.sh"
+  __run_external "$HOME/.local/dotfiles/personal/install.sh"
 fi
 [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
 [ -f "$HOME/.profile" ] && . "$HOME/.profile"
@@ -1521,7 +1521,7 @@ fi
 printf_head "Enabling services"
 ##################################################################################################################
 for service_enable in $SERVICES_ENABLE; do
-  if [ -n "$service_enable" ] && system_service_exists "$service_enable"; then
+  if [ -n "$service_enable" ] && __system_service_exists "$service_enable"; then
     system_service_enable $service_enable
     systemctl restart $service_enable >/dev/null 2>&1
   fi
@@ -1530,7 +1530,7 @@ done
 printf_head "Disabling services"
 ##################################################################################################################
 for service_disable in $SERVICES_DISABLE; do
-  if [ -n "$service_disable" ] && system_service_exists "$service_disable"; then
+  if [ -n "$service_disable" ] && __system_service_exists "$service_disable"; then
     system_service_disable $service_disable
   fi
 done
@@ -1540,10 +1540,10 @@ printf_head "Setting up docker"
 if [ -n "$(type -P dockermgr 2>/dev/null)" ]; then
   system_service_enable docker
   __devnull systemctl restart docker
-  run_post dockermgr init && __devnull dockermgr init
+  __run_post dockermgr init && __devnull dockermgr init
 fi
 if [ -n "$(type -P composemgr 2>/dev/null)" ]; then
-  run_post composemgr --config && __devnull composemgr --env
+  __run_post composemgr --config && __devnull composemgr --env
 fi
 ##################################################################################################################
 printf_head "Disabling dnsmasq"
@@ -1562,10 +1562,10 @@ printf_head "Cleaning up"
 find "/etc" "/usr" "/var" -iname '*.rpmnew' -exec rm -Rf {} \; >/dev/null 2>&1
 find "/etc" "/usr" "/var" -iname '*.rpmsave' -exec rm -Rf {} \; >/dev/null 2>&1
 __devnull rm -Rf /tmp/*.tar "/tmp/dotfiles" "$CONFIG_TEMP_DIR"
-__devnull retrieve_repo_file
+__devnull __retrieve_repo_file
 history -c && history -w
 ##################################################################################################################
-printf_head "Installer version: $(retrieve_version_file)"
+printf_head "Installer version: $(__retrieve_version_file)"
 ##################################################################################################################
 mkdir -p "/etc/casjaysdev/updates/versions"
 echo "$VERSION" >"/etc/casjaysdev/updates/versions/configs.txt"
@@ -1578,5 +1578,5 @@ printf_head "Finished configuring $HOSTNAME"
 echo ""
 ##################################################################################################################
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit
+exit 0
 # end
