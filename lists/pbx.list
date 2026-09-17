@@ -391,11 +391,10 @@ graphite2-devel
 graphviz
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
@@ -422,7 +421,7 @@ gvfs-client
 gvfs-devel
 gzip
 hamcrest
-hardlink
+util-linux-core
 harfbuzz
 harfbuzz-devel
 harfbuzz-icu
@@ -933,7 +932,6 @@ lzo-minilzo
 m2crypto
 m4
 mailcap
-mailx
 make
 man-db
 man-pages
@@ -966,7 +964,7 @@ mesa-libGLU-devel
 mgetty
 microcode_ctl
 miniupnpc
-mlocate
+plocate
 mock
 mock-core-configs
 mock-filesystem
@@ -1174,7 +1172,7 @@ papi
 papi-devel
 parfait
 parted
-passwd
+shadow-utils
 patch
 patchutils
 pciutils
@@ -1670,7 +1668,6 @@ sg3_utils
 sg3_utils-libs
 sgml-common
 sgpio
-shadow-utils
 shared-desktop-ontologies
 shared-desktop-ontologies-devel
 shared-mime-info
@@ -1853,5 +1850,5 @@ yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
 zip
-zlib
+zlib-ng-compat
 zlib-devel

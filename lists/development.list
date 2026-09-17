@@ -77,7 +77,6 @@ avahi-glib
 avahi-libs
 avalon-framework
 avalon-logkit
-awffull
 awstats
 base64coder
 basesystem
@@ -137,7 +136,6 @@ cockpit
 cockpit-bridge
 cockpit-dashboard
 cockpit-packagekit
-cockpit-pcp
 cockpit-system
 cockpit-ws
 codehaus-parent
@@ -355,19 +353,16 @@ golang-src
 google-guice
 gpgme
 gpg-pubkey
-gpg-pubkey
-gpg-pubkey
 gpm-libs
 graphite2
 graphite2-devel
 graphviz
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
@@ -388,7 +383,7 @@ gvfs
 gvfs-client
 gzip
 hamcrest
-hardlink
+util-linux-core
 harfbuzz
 harfbuzz-devel
 harfbuzz-icu
@@ -809,7 +804,6 @@ m17n-db
 m17n-lib
 m4
 mailcap
-mailx
 make
 man-db
 man-pages
@@ -900,7 +894,7 @@ mesa-libwayland-egl-devel
 mhash
 mhash-devel
 microcode_ctl
-mlocate
+plocate
 modello
 ModemManager-glib
 mod_fcgid
@@ -1006,7 +1000,7 @@ pam-devel
 pango
 pango-devel
 parted
-passwd
+shadow-utils
 patch
 patchutils
 pciutils
@@ -1516,7 +1510,6 @@ setuptool
 sg3_utils
 sg3_utils-libs
 sgml-common
-shadow-utils
 shared-mime-info
 shorewall
 shorewall6
@@ -1622,7 +1615,6 @@ vo-amrwbenc
 volume_key-libs
 wayland-devel
 wayland-protocols-devel
-webalizer
 web-assets-filesystem
 webkitgtk4
 webkitgtk4-jsc
@@ -1674,5 +1666,5 @@ yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
 zip
-zlib
+zlib-ng-compat
 zlib-devel

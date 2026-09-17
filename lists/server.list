@@ -33,7 +33,6 @@ avahi-autoipd
 avahi-dnsconfd
 avahi-glib
 avahi-libs
-awffull
 awstats
 basesystem
 bash
@@ -82,7 +81,6 @@ cockpit-bridge
 cockpit-dashboard
 cockpit-machines
 cockpit-packagekit
-cockpit-pcp
 cockpit-system
 cockpit-ws
 colord-libs
@@ -284,11 +282,10 @@ graphite2
 graphviz
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
@@ -306,7 +303,7 @@ gvfs
 gvfs-client
 gvnc
 gzip
-hardlink
+util-linux-core
 harfbuzz
 harfbuzz-icu
 hdparm
@@ -425,7 +422,6 @@ m2crypto
 m4
 mailcap
 mailman
-mailx
 make
 man-db
 man-pages
@@ -441,7 +437,7 @@ mesa-libGL-devel
 mesa-libGLU
 mesa-libwayland-egl
 microcode_ctl
-mlocate
+plocate
 mod_dav_svn
 ModemManager-glib
 mod_fcgid
@@ -548,7 +544,7 @@ pam
 pango
 par2cmdline
 parted
-passwd
+shadow-utils
 patch
 patchutils
 pax
@@ -1418,7 +1414,6 @@ sg3_utils-libs
 sgabios-bin
 sgml-common
 sgpio
-shadow-utils
 shared-mime-info
 shorewall
 shorewall6
@@ -1534,7 +1529,6 @@ vo-amrwbenc
 volume_key-libs
 vte291
 vte-profile
-webalizer
 web-assets-filesystem
 webkitgtk4
 webkitgtk4-jsc
@@ -1580,6 +1574,6 @@ yum-plugin-fastestmirror
 yum-utils
 zeromq3
 zip
-zlib
+zlib-ng-compat
 zlib-devel
 zvbi

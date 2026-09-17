@@ -157,8 +157,8 @@ SERVICES_DISABLE=""
 [ "$1" == "--help" ] && __printf_exit "${GREEN}${SCRIPT_DESCRIBE} installer for $SCRIPT_OS${NC}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __system_service_exists() { systemctl status "$1" 2>&1 | grep -iq -- "$1" && return 0 || return 1; }
-system_service_enable() { systemctl is-enabled --quiet "$1" 2>/dev/null || __execute "systemctl enable $1" "Enabling service: $1" || return 1; }
-system_service_disable() { systemctl status "$1" 2>&1 | grep -iq -- 'active' && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
+__system_service_enable() { systemctl is-enabled --quiet "$1" 2>/dev/null || __execute "systemctl enable $1" "Enabling service: $1" || return 1; }
+__system_service_disable() { systemctl status "$1" 2>&1 | grep -iq -- 'active' && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __dnf_yum() {
   local rhel_pkgmgr="" opts="--skip-broken"
@@ -269,7 +269,7 @@ __save_remote_file() { __urlverify "$1" && curl -q -SLs "$1" | tee "$2" &>/dev/n
 __domain_name() { hostname -f | awk -F'.' '{$1="";OFS="." ; print $0}' | sed 's/^.//;s| |.|g' | grep -- '^'; }
 __retrieve_version_file() { __grab_remote_file "https://github.com/casjay-base/rhel/raw/main/version.txt" | head -n1 || echo "Unknown version"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_head() {
+__printf_head() {
   printf '%b##################################################\n' "$CYAN"
   printf '%b%s%b\n' $GREEN "$*" $CYAN
   printf '##################################################%b\n' $NC
@@ -277,7 +277,7 @@ printf_head() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __printf_clear() {
   clear
-  printf_head "$*"
+  __printf_head "$*"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rm_if_exists() {
@@ -383,7 +383,7 @@ elif [ -f "/etc/casjaysdev/updates/versions/installed.txt" ]; then
 else
   __run_init_check
   __retrieve_repo_file || __printf_exit "The script has failed to initialize"
-  system_service_enable vnstat && systemctl start vnstat &>/dev/null
+  __system_service_enable vnstat && systemctl start vnstat &>/dev/null
 fi
 if ! builtin type -P systemmgr &>/dev/null; then
   __run_external /usr/local/share/CasjaysDev/scripts/install.sh
@@ -392,11 +392,11 @@ if ! builtin type -P systemmgr &>/dev/null; then
 fi
 __printf_green "Installer has been initialized"
 ##################################################################################################################
-printf_head "Disabling selinux"
+__printf_head "Disabling selinux"
 ##################################################################################################################
 __disable_selinux
 ##################################################################################################################
-printf_head "Configuring cores for compiling"
+__printf_head "Configuring cores for compiling"
 ##################################################################################################################
 numberofcores=$(grep -c -- ^processor /proc/cpuinfo)
 __printf_yellow "Total cores avaliable: $numberofcores"
@@ -407,11 +407,11 @@ if [ -f /etc/makepkg.conf ]; then
   fi
 fi
 ##################################################################################################################
-printf_head "Grabbing ssh key[s]: from $SSH_KEY_LOCATION for $USER"
+__printf_head "Grabbing ssh key[s]: from $SSH_KEY_LOCATION for $USER"
 ##################################################################################################################
 __get_user_ssh_key
 ##################################################################################################################
-printf_head "Configuring the system"
+__printf_head "Configuring the system"
 ##################################################################################################################
 __run_external timedatectl set-timezone America/New_York
 __run_external yum update -q -yy --skip-broken
@@ -419,10 +419,10 @@ __install_pkg net-tools
 __install_pkg wget
 __install_pkg curl
 __install_pkg git
-__install_pkg nail
+__install_pkg s-nail
 __install_pkg e2fsprogs
-__install_pkg redhat-lsb
-__install_pkg vim
+[ "$RELEASE_VER" -le 8 ] && __install_pkg redhat-lsb || true
+__install_pkg vim-enhanced
 __install_pkg unzip
 __install_pkg cronie-noanacron
 __install_pkg bind-utils
@@ -433,31 +433,31 @@ __rm_if_exists /tmp/dotfiles
 __rm_if_exists /root/anaconda-ks.cfg /var/log/anaconda
 __run_external yum update -q -yy --skip-broken
 ##################################################################################################################
-printf_head "Installing the packages for $RELEASE_NAME"
+__printf_head "Installing the packages for $RELEASE_NAME"
 ##################################################################################################################
 __install_pkg postfix
 ##################################################################################################################
-printf_head "Setting up grub"
+__printf_head "Setting up grub"
 ##################################################################################################################
 __run_grub
 ##################################################################################################################
-printf_head "setting up config files"
+__printf_head "setting up config files"
 ##################################################################################################################
 rm -Rf /etc/named* /var/named/* /etc/ntp* /etc/cron*/0* /etc/cron*/dailyjobs /var/ftp/uploads /etc/httpd/conf.d/ssl.conf /tmp/configs
 ##################################################################################################################
-printf_head "Disabling services"
+__printf_head "Disabling services"
 ##################################################################################################################
-system_service_disable kdump
+__system_service_disable kdump
 ##################################################################################################################
-printf_head "Enabling services"
+__printf_head "Enabling services"
 ##################################################################################################################
-system_service_enable sshd
-system_service_enable cockpit
-system_service_enable postfix
-system_service_enable uptimed
-system_service_enable cockpit.socket
+__system_service_enable sshd
+__system_service_enable cockpit
+__system_service_enable postfix
+__system_service_enable uptimed
+__system_service_enable cockpit.socket
 ##################################################################################################################
-printf_head "Setting up ssl certificates"
+__printf_head "Setting up ssl certificates"
 ##################################################################################################################
 update-ca-trust && update-ca-trust extract
 # If using letsencrypt certificates
@@ -476,11 +476,11 @@ else
   find /etc/postfix /etc/httpd /etc/cockpit/ws-certs.d -type f -exec sed -i 's#/etc/letsencrypt/live/domain/privkey.pem#/etc/ssl/CA/CasjaysDev/private/localhost.key#g' {} \;
 fi
 ##################################################################################################################
-printf_head "Cleaning up"
+__printf_head "Cleaning up"
 ##################################################################################################################
 history -c && history -w && history -r && history -w
 ##################################################################################################################
-printf_head "Installer version: $(__retrieve_version_file)"
+__printf_head "Installer version: $(__retrieve_version_file)"
 ##################################################################################################################
 mkdir -p "/etc/casjaysdev/updates/versions"
 echo "$VERSION" >"/etc/casjaysdev/updates/versions/configs.txt"
@@ -489,7 +489,7 @@ echo "Installed on $(date +'%Y-%m-%d at %H:%M %Z')" >"/etc/casjaysdev/updates/ve
 chmod -Rf 664 "/etc/casjaysdev/updates/versions/configs.txt"
 chmod -Rf 664 "/etc/casjaysdev/updates/versions/installed.txt"
 ##################################################################################################################
-printf_head "Finished "
+__printf_head "Finished "
 echo ""
 ##################################################################################################################
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

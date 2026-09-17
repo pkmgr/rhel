@@ -55,7 +55,6 @@ automake
 avahi-autoipd
 avahi-glib
 avahi-libs
-awffull
 awstats
 basesystem
 bash
@@ -106,7 +105,6 @@ cockpit
 cockpit-bridge
 cockpit-dashboard
 cockpit-packagekit
-cockpit-pcp
 cockpit-storaged
 cockpit-system
 cockpit-tests
@@ -255,11 +253,10 @@ graphite2
 graphviz
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
@@ -273,7 +270,7 @@ gtk2
 gtk3
 guile
 gzip
-hardlink
+util-linux-core
 harfbuzz
 harfbuzz-icu
 hdparm
@@ -376,7 +373,6 @@ lzop
 m4
 mailcap
 mailman
-mailx
 make
 man-db
 man-pages
@@ -390,7 +386,7 @@ mesa-libGLU
 mesa-libgbm
 mesa-libglapi
 microcode_ctl
-mlocate
+plocate
 mod_fcgid
 mod_geoip
 mod_http2
@@ -480,7 +476,7 @@ pam-devel
 pam_krb5
 pango
 parted
-passwd
+shadow-utils
 patch
 patchutils
 pax
@@ -1187,7 +1183,6 @@ setools-libs
 setup
 setuptool
 sgml-common
-shadow-utils
 shared-mime-info
 shorewall
 shorewall-core
@@ -1233,9 +1228,8 @@ uptimed
 urw-fonts
 ustr
 util-linux
-vim
-vim-common
 vim-enhanced
+vim-common
 vim-filesystem
 vim-minimal
 virt-what
@@ -1243,7 +1237,6 @@ vnstat
 w3c-markup-validator
 w3c-markup-validator-libs
 web-assets-filesystem
-webalizer
 webkitgtk4
 webkitgtk4-jsc
 webkitgtk4-plugin-process-gtk2
@@ -1277,6 +1270,6 @@ yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
 zip
-zlib
+zlib-ng-compat
 zlib-devel
 zvbi

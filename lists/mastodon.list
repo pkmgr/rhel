@@ -16,7 +16,6 @@ autoconf
 autogen-libopts
 automake
 avahi-libs
-awffull
 awstats
 basesystem
 bash
@@ -50,7 +49,6 @@ cockpit
 cockpit-bridge
 cockpit-dashboard
 cockpit-packagekit
-cockpit-pcp
 cockpit-system
 cockpit-ws
 comps-extras
@@ -184,11 +182,10 @@ gpm-libs
 graphite2
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
@@ -196,7 +193,7 @@ gsettings-desktop-schemas
 gssproxy
 guile
 gzip
-hardlink
+util-linux-core
 harfbuzz
 hdparm
 hostname
@@ -436,7 +433,6 @@ lz4
 lzo
 m4
 mailcap
-mailx
 make
 man-db
 man-pages
@@ -448,7 +444,7 @@ mesa-libgbm
 mesa-libGL
 mesa-libglapi
 microcode_ctl
-mlocate
+plocate
 mod_fcgid
 mod_geoip
 mod_http2
@@ -525,7 +521,7 @@ pakchois
 pam
 pango
 parted
-passwd
+shadow-utils
 patch
 patchutils
 pciutils
@@ -921,7 +917,6 @@ sendxmpp
 setools-libs
 setup
 setuptool
-shadow-utils
 shared-mime-info
 shorewall
 shorewall6
@@ -982,7 +977,6 @@ vim-minimal
 virt-what
 vnstat
 volume_key-libs
-webalizer
 web-assets-filesystem
 wget
 which
@@ -1007,5 +1001,5 @@ yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
 zip
-zlib
+zlib-ng-compat
 zlib-devel

@@ -20,7 +20,6 @@ autogen-libopts
 automake
 avahi-autoipd
 avahi-libs
-awffull
 awstats
 basesystem
 bash
@@ -146,17 +145,16 @@ gpm-libs
 graphite2
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
 gsettings-desktop-schemas
 gzip
-hardlink
+util-linux-core
 harfbuzz
 hdparm
 hostname
@@ -207,7 +205,6 @@ lzop
 m4
 mailcap
 mailman
-mailx
 make
 man-db
 mesa-libEGL
@@ -215,7 +212,7 @@ mesa-libgbm
 mesa-libGL
 mesa-libglapi
 microcode_ctl
-mlocate
+plocate
 mod_fcgid
 mod_geoip
 mod_http2
@@ -273,7 +270,7 @@ p7zip-plugins
 pam
 pango
 parted
-passwd
+shadow-utils
 pax
 pcre
 pcre-devel
@@ -566,7 +563,6 @@ selinux-policy-targeted
 sendmail-milter
 setools-libs
 setup
-shadow-utils
 shared-mime-info
 shorewall
 shorewall6
@@ -603,7 +599,6 @@ vim-enhanced
 vim-filesystem
 vim-minimal
 vnstat
-webalizer
 webmin
 wget
 which
@@ -619,5 +614,5 @@ yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
 zeromq3
-zlib
+zlib-ng-compat
 zlib-devel

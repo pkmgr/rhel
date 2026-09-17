@@ -14,7 +14,6 @@ augeas-libs
 authconfig
 avahi-autoipd
 avahi-libs
-awffull
 awstats
 basesystem
 bash
@@ -40,7 +39,6 @@ cockpit
 cockpit-bridge
 cockpit-dashboard
 cockpit-packagekit
-cockpit-pcp
 cockpit-system
 cockpit-ws
 conntrack-tools
@@ -144,11 +142,10 @@ gpm-libs
 graphite2
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
@@ -158,7 +155,7 @@ gssproxy
 gtk2
 gtk-update-icon-cache
 gzip
-hardlink
+util-linux-core
 harfbuzz
 hdparm
 hicolor-icon-theme
@@ -372,7 +369,6 @@ lz4
 lzo
 m4
 mailcap
-mailx
 make
 man-db
 mariadb
@@ -384,7 +380,7 @@ mesa-libGL
 mesa-libglapi
 mesa-libGLU
 microcode_ctl
-mlocate
+plocate
 mod_fcgid
 mod_geoip
 mod_http2
@@ -445,7 +441,7 @@ PackageKit-yum
 pam
 pango
 parted
-passwd
+shadow-utils
 patch
 pciutils
 pciutils-libs
@@ -756,7 +752,6 @@ setools-libs
 setup
 sg3_utils
 sg3_utils-libs
-shadow-utils
 shared-mime-info
 slang
 snappy
@@ -801,7 +796,6 @@ vim-minimal
 virt-what
 vnstat
 vo-amrwbenc
-webalizer
 wget
 which
 wpa_supplicant
@@ -820,4 +814,4 @@ yum
 yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
-zlib
+zlib-ng-compat

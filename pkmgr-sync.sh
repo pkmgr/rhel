@@ -52,13 +52,12 @@ pkg_name() {
                 crontabs)                   echo cron ;;
                 initscripts)                echo SKIP ;;
                 redhat-lsb)                 echo lsb-release ;;
-                grub2)                      echo grub-pc ;;
+                grub2-tools)                echo grub-pc ;;
                 grub2-tools-extra)          echo SKIP ;;
                 grubby)                     echo SKIP ;;
                 deltarpm)                   echo SKIP ;;
                 rootfiles)                  echo SKIP ;;
                 yum-utils)                  echo apt-utils ;;
-                mailx|nail)                 echo mailutils ;;
                 biosdevname)                echo SKIP ;;
                 harfbuzz)                   echo libharfbuzz0b ;;
                 gnupg2)                     echo gnupg2 ;;
@@ -74,7 +73,7 @@ pkg_name() {
                 perl-DBD-Firebird)          echo SKIP ;;
                 python3-certbot-dns-rfc2136) echo python3-certbot-dns-rfc2136 ;;
                 python3-neovim)             echo python3-pynvim ;;
-                python3-enum34|python3-funcsigs|python3-josepy|python3-mock) echo SKIP ;;
+                python3-josepy)             echo SKIP ;;
                 python3-parsedatetime|python3-pbr|python3-pyasn1|python3-pyrfc3339|python3-pysocks|python3-six) echo SKIP ;;
                 incus-selinux|incus-tools)  echo SKIP ;;
                 basesystem)                 echo base-files ;;
@@ -92,7 +91,12 @@ pkg_name() {
                 pinentry)                   echo pinentry-curses ;;
                 xz)                         echo xz-utils ;;
                 xz-libs)                    echo liblzma5 ;;
-                zlib)                       echo zlib1g ;;
+                zlib|zlib-ng-compat)        echo zlib1g ;;
+                vim-enhanced)               echo vim ;;
+                shadow-utils)               echo passwd ;;
+                firewalld)                  echo SKIP ;;
+                util-linux-core)            echo util-linux ;;
+                mlocate)                    echo plocate ;;
                 *)                          echo "$pkg" ;;
             esac
             ;;
@@ -101,12 +105,14 @@ pkg_name() {
                 cronie-noanacron)           echo SKIP ;;
                 redhat-lsb)                 echo SKIP ;;
                 deltarpm)                   echo SKIP ;;
-                mailx)                      echo mailx ;;
-                nail)                       echo mailx ;;
                 yum-utils)                  echo dnf-utils ;;
                 perl-DBD-Firebird)          echo SKIP ;;
-                python3-enum34|python3-funcsigs|python3-josepy|python3-mock) echo SKIP ;;
-                python3-neovim)             echo python3-pynvim ;;
+                python3-josepy)             echo SKIP ;;
+                python3-neovim)             echo python3-neovim ;;
+                basesystem)                 echo SKIP ;;
+                wget)                       echo wget2-wget ;;
+                mlocate)                    echo plocate ;;
+                zlib)                       echo zlib-ng-compat ;;
                 incus-selinux)              echo SKIP ;;
                 cockpit-bridge|cockpit-system|cockpit-ws) echo SKIP ;;
                 glibc-langpack-en)          echo SKIP ;;
@@ -117,13 +123,18 @@ pkg_name() {
         arch)
             case "$pkg" in
                 httpd)                      echo apache ;;
-                mod_fcgid)                  echo mod_fcgid ;;
+                mod_fcgid)                  echo SKIP ;;
+                cracklib-dicts)             echo SKIP ;;
+                hostname)                   echo inetutils ;;
+                ncurses-base|ncurses-libs)  echo ncurses ;;
+                openssh-server)             echo openssh ;;
+                xz-libs)                    echo xz ;;
+                mrtg)                       echo SKIP ;;
+                rsyslog)                    echo SKIP ;;
                 mod_geoip)                  echo SKIP ;;
                 mod_http2)                  echo SKIP ;;
                 mod_maxminddb)              echo SKIP ;;
-                mod_perl)                   echo mod_perl ;;
-                mod_ssl)                    echo mod_ssl ;;
-                mod_wsgi)                   echo mod_wsgi ;;
+                mod_perl|mod_ssl|mod_wsgi)  echo SKIP ;;
                 mod_proxy_html)             echo SKIP ;;
                 mod_proxy_uwsgi)            echo SKIP ;;
                 bind|bind-utils)            echo bind ;;
@@ -131,16 +142,18 @@ pkg_name() {
                 crontabs)                   echo SKIP ;;
                 initscripts)                echo SKIP ;;
                 redhat-lsb)                 echo lsb-release ;;
-                grub2)                      echo grub ;;
+                grub2-tools)                echo grub ;;
                 grub2-tools-extra)          echo SKIP ;;
                 grubby)                     echo SKIP ;;
                 deltarpm)                   echo SKIP ;;
                 rootfiles)                  echo SKIP ;;
                 yum-utils)                  echo pacman-contrib ;;
-                mailx|nail)                 echo s-nail ;;
                 biosdevname)                echo SKIP ;;
                 gnupg2)                     echo gnupg ;;
-                passwd)                     echo shadow ;;
+                shadow-utils)               echo shadow ;;
+                vim-enhanced)               echo vim ;;
+                util-linux-core)            echo util-linux ;;
+                mlocate)                    echo plocate ;;
                 oddjob-mkhomedir)           echo SKIP ;;
                 perl-CPAN|perl-CPAN-Meta)   echo perl ;;
                 perl-DBD-Pg)                echo perl-dbd-pg ;;
@@ -148,10 +161,10 @@ pkg_name() {
                 perl-DBD-SQLite)            echo perl-dbd-sqlite ;;
                 perl-DBD-MariaDB)           echo perl-dbd-mariadb ;;
                 perl-DBD-Firebird)          echo SKIP ;;
-                python3-certbot-dns-rfc2136) echo python-certbot-dns-rfc2136 ;;
+                python3-certbot-dns-rfc2136) echo certbot-dns-rfc2136 ;;
                 python3-configargparse)     echo python-configargparse ;;
                 python3-cryptography)       echo python-cryptography ;;
-                python3-enum34|python3-funcsigs|python3-josepy|python3-mock) echo SKIP ;;
+                python3-josepy)             echo SKIP ;;
                 python3-future)             echo SKIP ;;
                 python3-idna)               echo python-idna ;;
                 python3-neovim)             echo python-pynvim ;;
@@ -164,10 +177,10 @@ pkg_name() {
                 incus-selinux|incus-tools)  echo SKIP ;;
                 docker-ce)                  echo docker ;;
                 basesystem)                 echo base ;;
-                cockpit-bridge|cockpit-system|cockpit-ws|cockpit-packagekit|cockpit-storaged|cockpit-pcp) echo SKIP ;;
+                cockpit-bridge|cockpit-system|cockpit-ws|cockpit-packagekit|cockpit-storaged) echo SKIP ;;
                 munin|munin-common|munin-node) echo SKIP ;;
                 postfix-pcre)               echo SKIP ;;
-                awffull|awstats|webalizer)  echo SKIP ;;
+                webalizer)                  echo SKIP ;;
                 glibc-langpack-en)          echo SKIP ;;
                 kernel-ml-modules|kernel-ml-modules-extra|kernel-lt-modules|kernel-lt-modules-extra) echo SKIP ;;
                 *)                          echo "$pkg" ;;
@@ -176,7 +189,13 @@ pkg_name() {
         alpine)
             case "$pkg" in
                 httpd)                      echo apache2 ;;
-                mod_fcgid)                  echo apache2-mod-fcgid ;;
+                cracklib-dicts)             echo cracklib-words ;;
+                hostname)                   echo SKIP ;;
+                ncurses-base)               echo ncurses ;;
+                cowsay)                     echo SKIP ;;
+                rkhunter)                   echo SKIP ;;
+                symlinks)                   echo SKIP ;;
+                mod_fcgid)                  echo SKIP ;;
                 mod_geoip|mod_http2|mod_maxminddb|mod_perl|mod_ssl|mod_wsgi|mod_proxy_html|mod_proxy_uwsgi) echo SKIP ;;
                 bind)                       echo bind ;;
                 bind-utils)                 echo bind-tools ;;
@@ -184,16 +203,18 @@ pkg_name() {
                 crontabs)                   echo SKIP ;;
                 initscripts)                echo SKIP ;;
                 redhat-lsb)                 echo SKIP ;;
-                grub2)                      echo grub ;;
+                grub2-tools)                echo grub ;;
                 grub2-tools-extra)          echo SKIP ;;
                 grubby)                     echo SKIP ;;
                 deltarpm)                   echo SKIP ;;
                 rootfiles)                  echo SKIP ;;
                 yum-utils)                  echo SKIP ;;
-                mailx|nail)                 echo mailx ;;
                 biosdevname)                echo SKIP ;;
                 gnupg2)                     echo gnupg ;;
-                passwd)                     echo shadow ;;
+                shadow-utils)               echo shadow ;;
+                vim-enhanced)               echo vim ;;
+                util-linux-core)            echo util-linux ;;
+                firewalld)                  echo SKIP ;;
                 oddjob-mkhomedir)           echo SKIP ;;
                 perl-CPAN|perl-CPAN-Meta)   echo perl ;;
                 perl-DBD-Pg)                echo perl-dbd-pg ;;
@@ -202,7 +223,7 @@ pkg_name() {
                 python3-certbot-dns-rfc2136) echo SKIP ;;
                 python3-configargparse)     echo py3-configargparse ;;
                 python3-cryptography)       echo py3-cryptography ;;
-                python3-enum34|python3-funcsigs|python3-josepy|python3-mock) echo SKIP ;;
+                python3-josepy)             echo SKIP ;;
                 python3-future)             echo SKIP ;;
                 python3-idna)               echo py3-idna ;;
                 python3-neovim)             echo py3-pynvim ;;
@@ -226,10 +247,10 @@ pkg_name() {
                 incus|incus-selinux|incus-tools) echo SKIP ;;
                 docker-ce)                  echo docker ;;
                 basesystem)                 echo alpine-base ;;
-                cockpit|cockpit-packagekit|cockpit-storaged|cockpit-pcp|cockpit-bridge|cockpit-system|cockpit-ws) echo SKIP ;;
+                cockpit|cockpit-packagekit|cockpit-storaged|cockpit-bridge|cockpit-system|cockpit-ws) echo SKIP ;;
                 munin-common|munin-node)    echo SKIP ;;
                 postfix-pcre)               echo SKIP ;;
-                awffull|awstats|webalizer)  echo SKIP ;;
+                fortune-mod|webalizer)      echo SKIP ;;
                 glibc-langpack-en)          echo SKIP ;;
                 kernel-ml-modules|kernel-ml-modules-extra|kernel-lt-modules|kernel-lt-modules-extra) echo SKIP ;;
                 *)                          echo "$pkg" ;;
@@ -421,7 +442,7 @@ func_test_pkg_body() {
             cat <<'BODY'
 	for pkg in "$@"; do
 		if dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "ok installed"; then
-			printf_blue "[ ✔ ] $pkg is already installed"
+			__printf_blue "[ ✔ ] $pkg is already installed"
 			return 1
 		else
 			return 0
@@ -433,7 +454,7 @@ BODY
             cat <<'BODY'
 	for pkg in "$@"; do
 		if rpm -q "$pkg" >/dev/null 2>&1; then
-			printf_blue "[ ✔ ] $pkg is already installed"
+			__printf_blue "[ ✔ ] $pkg is already installed"
 			return 1
 		else
 			return 0
@@ -445,7 +466,7 @@ BODY
             cat <<'BODY'
 	for pkg in "$@"; do
 		if pacman -Q "$pkg" >/dev/null 2>&1; then
-			printf_blue "[ ✔ ] $pkg is already installed"
+			__printf_blue "[ ✔ ] $pkg is already installed"
 			return 1
 		else
 			return 0
@@ -457,7 +478,7 @@ BODY
             cat <<'BODY'
 	for pkg in "$@"; do
 		if apk info -e "$pkg" >/dev/null 2>&1; then
-			printf_blue "[ ✔ ] $pkg is already installed"
+			__printf_blue "[ ✔ ] $pkg is already installed"
 			return 1
 		else
 			return 0
@@ -477,7 +498,7 @@ func_remove_pkg_body() {
 	local pkg=""
 	for pkg in "$@"; do
 		if dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "ok installed"; then
-			execute "DEBIAN_FRONTEND=noninteractive apt-get remove -y -q $pkg" "Removing: $pkg"
+			__execute "DEBIAN_FRONTEND=noninteractive apt-get remove -y -q $pkg" "Removing: $pkg"
 		fi
 	done
 	return 0
@@ -488,7 +509,7 @@ BODY
 	local pkg=""
 	for pkg in "$@"; do
 		if rpm -q "$pkg" >/dev/null 2>&1; then
-			execute "rpm -ev --nodeps $pkg" "Removing: $pkg"
+			__execute "rpm -ev --nodeps $pkg" "Removing: $pkg"
 		fi
 	done
 	return 0
@@ -499,7 +520,7 @@ BODY
 	local pkg=""
 	for pkg in "$@"; do
 		if pacman -Q "$pkg" >/dev/null 2>&1; then
-			execute "pacman -R --noconfirm $pkg" "Removing: $pkg"
+			__execute "pacman -R --noconfirm $pkg" "Removing: $pkg"
 		fi
 	done
 	return 0
@@ -510,7 +531,7 @@ BODY
 	local pkg=""
 	for pkg in "$@"; do
 		if apk info -e "$pkg" >/dev/null 2>&1; then
-			execute "apk del $pkg" "Removing: $pkg"
+			__execute "apk del $pkg" "Removing: $pkg"
 		fi
 	done
 	return 0
@@ -526,9 +547,9 @@ func_install_pkg_body() {
         debian|ubuntu|raspbian)
             cat <<'BODY'
 	local statusCode=0
-	if test_pkg "$*"; then
-		execute "DEBIAN_FRONTEND=noninteractive apt-get install -y -q $*" "Installing: $*"
-		test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
+	if __test_pkg "$*"; then
+		__execute "DEBIAN_FRONTEND=noninteractive apt-get install -y -q $*" "Installing: $*"
+		__test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
 	else
 		statusCode=0
 	fi
@@ -539,9 +560,9 @@ BODY
             cat <<'BODY'
 	local statusCode=0
 	local opts="--allowerasing --nobest --skip-broken"
-	if test_pkg "$*"; then
-		execute "dnf install -q -y $* $opts" "Installing: $*"
-		test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
+	if __test_pkg "$*"; then
+		__execute "dnf install -q -y $* $opts" "Installing: $*"
+		__test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
 	else
 		statusCode=0
 	fi
@@ -551,9 +572,9 @@ BODY
         arch)
             cat <<'BODY'
 	local statusCode=0
-	if test_pkg "$*"; then
-		execute "pacman -S --noconfirm --needed $*" "Installing: $*"
-		test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
+	if __test_pkg "$*"; then
+		__execute "pacman -S --noconfirm --needed $*" "Installing: $*"
+		__test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
 	else
 		statusCode=0
 	fi
@@ -563,9 +584,9 @@ BODY
         alpine)
             cat <<'BODY'
 	local statusCode=0
-	if test_pkg "$*"; then
-		execute "apk add --no-cache $*" "Installing: $*"
-		test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
+	if __test_pkg "$*"; then
+		__execute "apk add --no-cache $*" "Installing: $*"
+		__test_pkg "$*" &>/dev/null && statusCode=1 || statusCode=0
 	else
 		statusCode=0
 	fi
@@ -698,10 +719,10 @@ func_disable_selinux_body() {
         fedora)
             # Fedora has selinux; keep same logic
             cat <<'BODY'
-	if detect_selinux; then
-		printf_blue "selinux is now disabled"
+	if __detect_selinux; then
+		__printf_blue "selinux is now disabled"
 		if [ -f "/etc/selinux/config" ]; then
-			devnull setenforce 0
+			__devnull setenforce 0
 			sed -i 's|SELINUX=.*|SELINUX=disabled|g' "/etc/selinux/config"
 		else
 			mkdir -p "/etc/selinux"
@@ -713,12 +734,12 @@ SELINUXTYPE=targeted
 EOF
 		fi
 	else
-		printf_green "selinux is already disabled"
+		__printf_green "selinux is already disabled"
 	fi
 BODY
             ;;
         debian|ubuntu|raspbian|arch|alpine)
-            echo '	printf_blue "SELinux not applicable on this distro — skipping"'
+            echo '	__printf_blue "SELinux not applicable on this distro — skipping"'
             ;;
     esac
 }
@@ -745,11 +766,11 @@ BODY
 
 # kernel-ml/lt stubs for non-RHEL
 func_kernel_ml_body() {
-    echo '	printf_blue "Custom kernel not applicable on this distro — using distribution default"'
+    echo '	__printf_blue "Custom kernel not applicable on this distro — using distribution default"'
     echo '	return 0'
 }
 func_kernel_lt_body() {
-    echo '	printf_blue "Custom kernel not applicable on this distro — using distribution default"'
+    echo '	__printf_blue "Custom kernel not applicable on this distro — using distribution default"'
     echo '	return 0'
 }
 
@@ -764,28 +785,28 @@ func_create_account_body_debian() {
 	if [ -z "$pass" ] || [ "$pass" = "random" ]; then
 		pass="$(__generate_password)"
 	fi
-	if does_user_exist "$user"; then
-		printf_yellow "User $user already exists - updating password only"
-		echo "$user:$pass" | devnull chpasswd
+	if __does_user_exist "$user"; then
+		__printf_yellow "User $user already exists - updating password only"
+		echo "$user:$pass" | __devnull chpasswd
 	else
 		existing_uid="$(getent passwd "$uid" | awk -F':' '{print $1}')"
 		if [ -n "$existing_uid" ]; then
-			printf_yellow "UID $uid already in use by $existing_uid - skipping $user"
+			__printf_yellow "UID $uid already in use by $existing_uid - skipping $user"
 			return 1
 		fi
-		devnull groupadd -g "$uid" "$user"
-		devnull useradd -u "$uid" -g "$uid" -m -s /bin/bash "$user"
-		echo "$user:$pass" | devnull chpasswd
+		__devnull groupadd -g "$uid" "$user"
+		__devnull useradd -u "$uid" -g "$uid" -m -s /bin/bash "$user"
+		echo "$user:$pass" | __devnull chpasswd
 	fi
 	if [ "$is_admin" = "yes" ]; then
-		devnull usermod -aG sudo "$user"
+		__devnull usermod -aG sudo "$user"
 		if [ -d "/etc/sudoers.d" ]; then
 			echo "$user ALL=(ALL) ALL" >"/etc/sudoers.d/$user"
 			chmod 440 "/etc/sudoers.d/$user"
 		fi
 	fi
 	SETUP_ACCOUNT_CREDS+=("$user:$pass")
-	printf_green "Account ready: $user (uid $uid)"
+	__printf_green "Account ready: $user (uid $uid)"
 BODY
 }
 
@@ -797,75 +818,75 @@ firewall_section() {
     cat <<'HDR'
 ##################################################################################################################
 HDR
-    echo "printf_head \"Configuring the firewall\""
+    echo "__printf_head \"Configuring the firewall\""
     echo "##################################################################################################################"
     case "$distro" in
         debian|ubuntu|raspbian)
             cat <<'FIREWALL'
-devnull apt-get install -y -q ufw
-devnull ufw --force reset
-devnull ufw default deny incoming
-devnull ufw default allow outgoing
-devnull ufw allow ssh
-devnull ufw allow http
-devnull ufw allow https
-devnull ufw allow 60000:61000/udp
-devnull ufw --force enable
+__devnull apt-get install -y -q ufw
+__devnull ufw --force reset
+__devnull ufw default deny incoming
+__devnull ufw default allow outgoing
+__devnull ufw allow ssh
+__devnull ufw allow http
+__devnull ufw allow https
+__devnull ufw allow 60000:61000/udp
+__devnull ufw --force enable
 FIREWALL
             ;;
         fedora)
             cat <<'FIREWALL'
-devnull systemctl start firewalld
-devnull firewall-cmd --permanent --zone=public --add-service=ssh
-if devnull firewall-cmd --info-service=mosh; then
-	devnull firewall-cmd --permanent --zone=public --add-service=mosh
+__devnull systemctl start firewalld
+__devnull firewall-cmd --permanent --zone=public --add-service=ssh
+if __devnull firewall-cmd --info-service=mosh; then
+	__devnull firewall-cmd --permanent --zone=public --add-service=mosh
 else
-	devnull firewall-cmd --permanent --zone=public --add-port=60000-61000/udp
+	__devnull firewall-cmd --permanent --zone=public --add-port=60000-61000/udp
 fi
-devnull firewall-cmd --permanent --zone=public --add-service=http
-devnull firewall-cmd --permanent --zone=public --add-service=https
-devnull firewall-cmd --permanent --zone=public --remove-service=cockpit
+__devnull firewall-cmd --permanent --zone=public --add-service=http
+__devnull firewall-cmd --permanent --zone=public --add-service=https
+__devnull firewall-cmd --permanent --zone=public --remove-service=cockpit
 # docker-ce auto-manages its own "docker" firewalld zone for docker0 at
 # runtime (D-Bus, target=ACCEPT) - a manual --change-interface=docker0
 # binding here collides with it (ZONE_CONFLICT: interface already bound
 # to a zone), so it has been dropped. incus does NOT self-manage a zone
 # (ipv4.firewall/ipv6.firewall=false on its networks - it deliberately
 # leaves firewalling to the host), so incusbr0 keeps its explicit bind.
-if devnull command -v incus; then
-	devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
+if __devnull command -v incus; then
+	__devnull firewall-cmd --permanent --zone=trusted --change-interface=incusbr0
 fi
-devnull firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -p icmp -s 0.0.0.0/0 -d 0.0.0.0/0 -j ACCEPT
-devnull firewall-cmd --reload
-devnull systemctl stop firewalld
+__devnull firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -p icmp -s 0.0.0.0/0 -d 0.0.0.0/0 -j ACCEPT
+__devnull firewall-cmd --reload
+__devnull systemctl stop firewalld
 FIREWALL
             ;;
         arch)
             cat <<'FIREWALL'
 if type -P ufw >/dev/null 2>&1; then
-	devnull ufw --force reset
-	devnull ufw default deny incoming
-	devnull ufw default allow outgoing
-	devnull ufw allow ssh
-	devnull ufw allow http
-	devnull ufw allow https
-	devnull ufw allow 60000:61000/udp
-	devnull ufw --force enable
+	__devnull ufw --force reset
+	__devnull ufw default deny incoming
+	__devnull ufw default allow outgoing
+	__devnull ufw allow ssh
+	__devnull ufw allow http
+	__devnull ufw allow https
+	__devnull ufw allow 60000:61000/udp
+	__devnull ufw --force enable
 else
-	devnull nft flush ruleset
-	devnull nft add table inet filter
-	devnull nft add chain inet filter input '{ type filter hook input priority 0; policy drop; }'
-	devnull nft add rule inet filter input ct state established,related accept
-	devnull nft add rule inet filter input iif lo accept
-	devnull nft add rule inet filter input ip protocol icmp accept
-	devnull nft add rule inet filter input tcp dport '{22,80,443}' accept
-	devnull nft add rule inet filter input udp dport '60000-61000' accept
+	__devnull nft flush ruleset
+	__devnull nft add table inet filter
+	__devnull nft add chain inet filter input '{ type filter hook input priority 0; policy drop; }'
+	__devnull nft add rule inet filter input ct state established,related accept
+	__devnull nft add rule inet filter input iif lo accept
+	__devnull nft add rule inet filter input ip protocol icmp accept
+	__devnull nft add rule inet filter input tcp dport '{22,80,443}' accept
+	__devnull nft add rule inet filter input udp dport '60000-61000' accept
 fi
 FIREWALL
             ;;
         alpine)
             cat <<'FIREWALL'
-devnull apk add --no-cache iptables
-devnull rc-update add iptables default 2>/dev/null || true
+__devnull apk add --no-cache iptables
+__devnull rc-update add iptables default 2>/dev/null || true
 # Allow SSH, HTTP, HTTPS, and mosh ports
 iptables -F INPUT 2>/dev/null || true
 iptables -P INPUT DROP
@@ -876,7 +897,7 @@ iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 iptables -A INPUT -p udp --dport 60000:61000 -j ACCEPT
-devnull rc-service iptables save 2>/dev/null || true
+__devnull rc-service iptables save 2>/dev/null || true
 FIREWALL
             ;;
     esac
@@ -890,7 +911,7 @@ incus_section() {
     cat <<'HDR'
 ##################################################################################################################
 HDR
-    echo "printf_head \"Installing incus\""
+    echo "__printf_head \"Installing incus\""
     echo "##################################################################################################################"
     case "$distro" in
         debian|ubuntu|raspbian)
@@ -899,29 +920,29 @@ incus_setup_failed="no"
 # Install incus via upstream apt repository
 if ! command -v incus >/dev/null 2>&1; then
 	if ! grep -qsi 'zabbly' /etc/apt/sources.list.d/*.list 2>/dev/null; then
-		printf_green "Enabling the incus repository"
+		__printf_green "Enabling the incus repository"
 		curl -fsSL https://pkgs.zabbly.com/key.asc | gpg --dearmor -o /etc/apt/keyrings/zabbly.gpg 2>/dev/null
 		echo "deb [signed-by=/etc/apt/keyrings/zabbly.gpg] https://pkgs.zabbly.com/incus/stable $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
 			| tee /etc/apt/sources.list.d/zabbly-incus-stable.list >/dev/null
 		DEBIAN_FRONTEND=noninteractive apt-get update -q &>/dev/null
 	fi
-	install_pkg incus
+	__install_pkg incus
 fi
 echo "0:1000000:1000000000" | tee /etc/subuid /etc/subgid >/dev/null
-if system_service_exists "incus"; then
-	devnull systemctl start "incus"
-	devnull systemctl restart "incus"
-	devnull systemctl enable --now incus || incus_setup_failed="yes"
+if __system_service_exists "incus"; then
+	__devnull systemctl start "incus"
+	__devnull systemctl restart "incus"
+	__devnull systemctl enable --now incus || incus_setup_failed="yes"
 else
 	incus_setup_failed=yes
 fi
 [ -n "$(find /var/lib/incus -mindepth 1 2>/dev/null)" ] || incus_setup_failed="yes"
 if [ "$incus_setup_failed" = "no" ]; then
 	if incus admin init --network-address 127.0.0.1 --network-port 60443 --storage-backend dir --quiet --auto; then
-		devnull incus network set incusbr0 ipv4.firewall false
-		devnull incus network set incusbr0 ipv6.firewall false
-		devnull systemctl restart incus
-		printf_blue "incus has been initialized"
+		__devnull incus network set incusbr0 ipv4.firewall false
+		__devnull incus network set incusbr0 ipv6.firewall false
+		__devnull systemctl restart incus
+		__printf_blue "incus has been initialized"
 		unset incus_setup_failed
 	else
 		incus_setup_failed="yes"
@@ -933,32 +954,31 @@ INCUS
             cat <<'INCUS'
 incus_setup_failed="no"
 if ! grep -Rqsi 'copr.*incus' '/etc/yum.repos.d'; then
-	printf_green "Enabling the dnf incus repo"
-	devnull dnf -y install epel-release
-	devnull dnf -y copr enable neil/incus
+	__printf_green "Enabling the dnf incus repo"
+	__devnull dnf -y copr enable neil/incus
 	__yum makecache
 fi
-install_pkg incus
+__install_pkg incus
 [ -d "/usr/share/OVMF" ] || mkdir -p "/usr/share/OVMF"
 if [ -f "/usr/share/edk2/ovmf/OVMF_CODE.fd" ] && [ ! -e "/usr/share/OVMF/OVMF_CODE.fd" ]; then
 	ln -s /usr/share/edk2/ovmf/OVMF_CODE.fd /usr/share/OVMF/OVMF_CODE.fd
 fi
 type -P setupmgr >/dev/null 2>&1 && setupmgr incus
 echo "0:1000000:1000000000" | tee /etc/subuid /etc/subgid >/dev/null
-if system_service_exists "incus"; then
-	devnull systemctl start "incus"
-	devnull systemctl restart "incus"
-	devnull systemctl enable --now incus || incus_setup_failed="yes"
+if __system_service_exists "incus"; then
+	__devnull systemctl start "incus"
+	__devnull systemctl restart "incus"
+	__devnull systemctl enable --now incus || incus_setup_failed="yes"
 else
 	incus_setup_failed=yes
 fi
 [ -n "$(find /var/lib/incus -mindepth 1 2>/dev/null)" ] || incus_setup_failed="yes"
 if [ "$incus_setup_failed" = "no" ]; then
 	if incus admin init --network-address 127.0.0.1 --network-port 60443 --storage-backend dir --quiet --auto; then
-		devnull incus network set incusbr0 ipv4.firewall false
-		devnull incus network set incusbr0 ipv6.firewall false
-		devnull systemctl restart incus
-		printf_blue "incus has been initialized"
+		__devnull incus network set incusbr0 ipv4.firewall false
+		__devnull incus network set incusbr0 ipv6.firewall false
+		__devnull systemctl restart incus
+		__printf_blue "incus has been initialized"
 		unset incus_setup_failed
 	else
 		incus_setup_failed="yes"
@@ -969,22 +989,22 @@ INCUS
         arch)
             cat <<'INCUS'
 incus_setup_failed="no"
-install_pkg incus
+__install_pkg incus
 echo "0:1000000:1000000000" | tee /etc/subuid /etc/subgid >/dev/null
-if system_service_exists "incus"; then
-	devnull systemctl start "incus"
-	devnull systemctl restart "incus"
-	devnull systemctl enable --now incus || incus_setup_failed="yes"
+if __system_service_exists "incus"; then
+	__devnull systemctl start "incus"
+	__devnull systemctl restart "incus"
+	__devnull systemctl enable --now incus || incus_setup_failed="yes"
 else
 	incus_setup_failed=yes
 fi
 [ -n "$(find /var/lib/incus -mindepth 1 2>/dev/null)" ] || incus_setup_failed="yes"
 if [ "$incus_setup_failed" = "no" ]; then
 	if incus admin init --network-address 127.0.0.1 --network-port 60443 --storage-backend dir --quiet --auto; then
-		devnull incus network set incusbr0 ipv4.firewall false
-		devnull incus network set incusbr0 ipv6.firewall false
-		devnull systemctl restart incus
-		printf_blue "incus has been initialized"
+		__devnull incus network set incusbr0 ipv4.firewall false
+		__devnull incus network set incusbr0 ipv6.firewall false
+		__devnull systemctl restart incus
+		__printf_blue "incus has been initialized"
 		unset incus_setup_failed
 	else
 		incus_setup_failed="yes"
@@ -994,7 +1014,7 @@ INCUS
             ;;
         alpine)
             cat <<'INCUS'
-printf_yellow "incus requires systemd — skipping on Alpine (OpenRC)"
+__printf_yellow "incus requires systemd — skipping on Alpine (OpenRC)"
 INCUS
             ;;
     esac
@@ -1071,7 +1091,7 @@ replace_func_file() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # replace_section INPUT MARKER REPL_FILE
-# Section format: ######/printf_head "Title"/######/content/######(next)
+# Section format: ######/__printf_head "Title"/######/content/######(next)
 # Removes the entire section (including its leading ######) and emits
 # the content of REPL_FILE in its place, then resumes at the next ######.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1088,7 +1108,7 @@ replace_section() {
             hold = $0
             next
         }
-        hold != "" && index($0, marker) > 0 && /printf_head/ {
+        hold != "" && index($0, marker) > 0 && /__printf_head/ {
             hold = ""; skip = 1; count = 0; next
         }
         {
@@ -1110,7 +1130,7 @@ replace_section() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # skip_section INPUT MARKER — remove a section entirely (including its leading ######)
-# Section format: ######/printf_head "Title"/######/content/######(next)
+# Section format: ######/__printf_head "Title"/######/content/######(next)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 skip_section() {
     local input="$1" marker="$2"
@@ -1121,7 +1141,7 @@ skip_section() {
             hold = $0
             next
         }
-        hold != "" && index($0, marker) > 0 && /printf_head/ {
+        hold != "" && index($0, marker) > 0 && /__printf_head/ {
             hold = ""; skip = 1; count = 0; next
         }
         {
@@ -1162,26 +1182,23 @@ replace_block() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 apply_pkg_renames() {
     local distro="$1"
-    local tmpfile
-    tmpfile="$(mktemp)"
 
     while IFS= read -r line; do
-        # Match install_pkg or remove_pkg lines and map the package name
-        if [[ "$line" =~ ^(install_pkg|remove_pkg)[[:space:]]+([a-zA-Z0-9_.+-]+)$ ]]; then
-            local cmd="${BASH_REMATCH[1]}"
-            local pkg="${BASH_REMATCH[2]}"
+        # Match __install_pkg/__remove_pkg (or the unprefixed legacy spelling)
+        # at any indentation and map the package name for this distro
+        if [[ "$line" =~ ^([[:space:]]*)(__)?(install_pkg|remove_pkg)[[:space:]]+([a-zA-Z0-9_.+-]+)$ ]]; then
+            local indent="${BASH_REMATCH[1]}"
+            local prefix="${BASH_REMATCH[2]}"
+            local cmd="${BASH_REMATCH[3]}"
+            local pkg="${BASH_REMATCH[4]}"
             local mapped
             mapped="$(pkg_name "$distro" "$pkg")"
-            if [ "$mapped" = "SKIP" ]; then
-                printf '%s\n' "# $line  # skipped on $distro"
-            else
-                printf '%s\n' "${cmd} ${mapped}"
-            fi
+            [ "$mapped" = "SKIP" ] && continue
+            printf '%s\n' "${indent}${prefix}${cmd} ${mapped}"
         else
             printf '%s\n' "$line"
         fi
     done
-    rm -f "$tmpfile"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1210,8 +1227,8 @@ apply_content_transforms() {
                 -e 's|is-active httpd|is-active apache2|g' \
                 -e "s|SCRIPT_OS=\"AlmaLinux\"|SCRIPT_OS=\"$(distro_script_os "$distro")\"|g" \
                 -e 's|echo "rhel"|echo ""|g' \
-                -e 's|run_external "__yum clean all"|run_external "__yum clean"|g' \
-                -e 's|run_external yum update -q -yy --skip-broken|run_external "apt-get upgrade -y -q"|g'
+                -e 's|__run_external "__yum clean all"|__run_external "__yum clean"|g' \
+                -e 's|__run_external yum update -q -yy --skip-broken|__run_external "apt-get upgrade -y -q"|g'
             ;;
         fedora)
             sed \
@@ -1220,13 +1237,11 @@ apply_content_transforms() {
                 -e "s|SCRIPT_OS=\"AlmaLinux\"|SCRIPT_OS=\"$(distro_script_os "$distro")\"|g" \
                 -e 's|echo "rhel"|echo "fedora"|g' \
                 -e "s|ID_LIKE.*centos\"|ID_LIKE.*fedora\"|g" \
-                -e 's|run_external "__yum clean all"|run_external "dnf clean all -q"|g' \
-                -e 's|run_external yum update -q -yy --skip-broken|run_external "dnf upgrade -y -q"|g'
+                -e 's|__run_external "__yum clean all"|__run_external "dnf clean all -q"|g' \
+                -e 's|__run_external yum update -q -yy --skip-broken|__run_external "dnf upgrade -y -q"|g'
             ;;
         arch)
             sed \
-                -e 's|/etc/named|/etc/bind|g' \
-                -e 's|/var/named|/var/cache/bind|g' \
                 -e 's|/etc/php-fpm\.conf|/etc/php/php-fpm.conf|g' \
                 -e 's|/etc/php-fpm\.d/|/etc/php/fpm/pool.d/|g' \
                 -e 's|/etc/php\.ini|/etc/php/php.ini|g' \
@@ -1237,8 +1252,8 @@ apply_content_transforms() {
                 -e "s|\"centos\"|\"$distro\"|g" \
                 -e "s|SCRIPT_OS=\"AlmaLinux\"|SCRIPT_OS=\"$(distro_script_os "$distro")\"|g" \
                 -e 's|echo "rhel"|echo ""|g' \
-                -e 's|run_external "__yum clean all"|run_external "pacman -Sc --noconfirm"|g' \
-                -e 's|run_external yum update -q -yy --skip-broken|run_external "pacman -Syu --noconfirm"|g'
+                -e 's|__run_external "__yum clean all"|__run_external "pacman -Sc --noconfirm"|g' \
+                -e 's|__run_external yum update -q -yy --skip-broken|__run_external "pacman -Syu --noconfirm"|g'
             ;;
         alpine)
             sed \
@@ -1257,8 +1272,8 @@ apply_content_transforms() {
                 -e "s|\"centos\"|\"$distro\"|g" \
                 -e "s|SCRIPT_OS=\"AlmaLinux\"|SCRIPT_OS=\"$(distro_script_os "$distro")\"|g" \
                 -e 's|echo "rhel"|echo ""|g' \
-                -e 's|run_external "__yum clean all"|run_external "apk cache clean"|g' \
-                -e 's|run_external yum update -q -yy --skip-broken|run_external "apk upgrade"|g'
+                -e 's|__run_external "__yum clean all"|__run_external "apk cache clean"|g' \
+                -e 's|__run_external yum update -q -yy --skip-broken|__run_external "apk upgrade"|g'
             ;;
     esac
 }
@@ -1305,6 +1320,39 @@ service_list() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# php_block DISTRO — emit the distro-specific PHP package install
+# Replaces the rhel Remi/dnf-module PHP batch, which has no meaning elsewhere.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+php_block() {
+    local distro="$1"
+    case "$distro" in
+        debian|ubuntu|raspbian)
+            cat <<'PHPB'
+# Debian family ships unversioned PHP meta packages that pull the default slot
+__install_pkg php php-cli php-common php-fpm php-gd php-gmp php-intl php-mbstring php-mysql php-pdo php-pgsql php-xml
+PHPB
+            ;;
+        fedora)
+            cat <<'PHPB'
+__install_pkg php php-cli php-common php-fpm php-gd php-gmp php-intl php-mbstring php-mysqlnd php-pdo php-pgsql php-xml
+PHPB
+            ;;
+        arch)
+            cat <<'PHPB'
+# Arch builds cli, mbstring, xml and pdo into the base php package
+__install_pkg php php-fpm php-gd php-pgsql php-sqlite
+PHPB
+            ;;
+        alpine)
+            cat <<'PHPB'
+# Alpine PHP packages are slot-versioned and installed in the version-specific section
+true
+PHPB
+            ;;
+    esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # version_pkg_block DISTRO — emit distro-specific runtime version-conditional package section
 # Replaces the "Installing version-specific packages" section from rhel source.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1313,7 +1361,7 @@ version_pkg_block() {
     cat <<'HDR'
 ##################################################################################################################
 HDR
-    echo "printf_head \"Installing version-specific packages\""
+    echo "__printf_head \"Installing version-specific packages\""
     echo "##################################################################################################################"
     case "$distro" in
         debian|ubuntu|raspbian)
@@ -1324,18 +1372,34 @@ PHP_VER="$(php --version 2>/dev/null | awk 'NR==1{print $2}' | cut -d. -f1,2)"
 [ -z "$PHP_VER" ] && PHP_VER="$(ls /etc/php/ 2>/dev/null | grep -E -- '^[0-9]' | sort -V | tail -1)"
 [ -z "$PHP_VER" ] && PHP_VER="8.2"
 # lsb-release: available on all supported Debian/Ubuntu versions
-install_pkg lsb-release
+__install_pkg lsb-release
+__install_pkg awstats
+__install_pkg fortune-mod
+# mlocate was replaced by plocate
+__install_pkg plocate
+__install_pkg zlib1g
 BODY
+            # python3-future is packaged by Ubuntu but not by Debian/Raspbian
+            if [ "$distro" = "ubuntu" ]; then
+                echo "__install_pkg python3-future"
+            fi
             ;;
         fedora)
             cat <<'BODY'
-# No EL-style version-specific packages on Fedora
-true
+__install_pkg awstats
+__install_pkg fortune-mod
+__install_pkg deltarpm
+__install_pkg redhat-lsb
 BODY
             ;;
         arch)
             cat <<'BODY'
-install_pkg lsb-release
+__install_pkg lsb-release
+__install_pkg awstats
+__install_pkg fortune-mod
+# mlocate was replaced by plocate
+__install_pkg plocate
+__install_pkg zlib
 BODY
             ;;
         alpine)
@@ -1350,18 +1414,21 @@ case "$_ALPINE_VER" in
     3.18*)     _PHP="php82" ;;
     *)         _PHP="php83" ;;
 esac
-install_pkg ${_PHP}
-install_pkg ${_PHP}-cli
-install_pkg ${_PHP}-fpm
-install_pkg ${_PHP}-gd
-install_pkg ${_PHP}-gmp
-install_pkg ${_PHP}-intl
-install_pkg ${_PHP}-mbstring
-install_pkg ${_PHP}-pdo_mysql
-install_pkg ${_PHP}-pdo
-install_pkg ${_PHP}-pgsql
-install_pkg ${_PHP}-xml
+__install_pkg ${_PHP}
+__install_pkg ${_PHP}-cli
+__install_pkg ${_PHP}-fpm
+__install_pkg ${_PHP}-gd
+__install_pkg ${_PHP}-gmp
+__install_pkg ${_PHP}-intl
+__install_pkg ${_PHP}-mbstring
+__install_pkg ${_PHP}-pdo_mysql
+__install_pkg ${_PHP}-pdo
+__install_pkg ${_PHP}-pgsql
+__install_pkg ${_PHP}-xml
 unset _PHP _ALPINE_VER
+__install_pkg awstats
+__install_pkg plocate
+__install_pkg zlib
 BODY
             ;;
     esac
@@ -1383,6 +1450,14 @@ generate_min_sh() {
     sed -i "s|^APPNAME=\"min\"|APPNAME=\"min-$distro\"|g" "$work"
     sed -i "s|@@Description.*:.*Script to setup min for CentOS.*|@@Description      :  Script to setup min for $(distro_script_os "$distro")|g" "$work"
 
+    # --- Step 1b: Drop the EPEL pre-seed block (EL-only, no equivalent elsewhere) ---
+    awk '
+        /^# epel-release must be enabled before the casjay-dotfiles\/scripts installer$/ { skip=1 }
+        skip && /^\{ yum makecache / { skip=0; next }
+        skip { next }
+        { print }
+    ' "$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+
     # --- Step 2: Replace early bootstrap block (before functions are loaded) ---
     # The block spans from "if [ ! -d /etc/casjaysdev ]" through "unset pkg"
     # (bash uses if/fi not {/}, so we use the end-marker "^unset pkg$")
@@ -1399,20 +1474,20 @@ generate_min_sh() {
     # --- Step 3: Replace function bodies ---
     # Use temp files to build replacement bodies
     local fbody
-    for func in __dnf_yum __yum backup_repo_files rm_repo_files test_pkg remove_pkg install_pkg run_init_check retrieve_repo_file disable_selinux detect_selinux __kernel_ml __kernel_lt; do
+    for func in __dnf_yum __yum __backup_repo_files __rm_repo_files __test_pkg __remove_pkg __install_pkg __run_init_check __retrieve_repo_file __disable_selinux __detect_selinux __kernel_ml __kernel_lt; do
         fbody="$tmpdir/body_${func}.txt"
         case "$func" in
             __dnf_yum)         func_dnf_yum_body "$distro" >"$fbody" ;;
             __yum)             func_yum_body "$distro" >"$fbody" ;;
-            backup_repo_files) func_backup_repo_files_body "$distro" >"$fbody" ;;
-            rm_repo_files)     func_rm_repo_files_body "$distro" >"$fbody" ;;
-            test_pkg)          func_test_pkg_body "$distro" >"$fbody" ;;
-            remove_pkg)        func_remove_pkg_body "$distro" >"$fbody" ;;
-            install_pkg)       func_install_pkg_body "$distro" >"$fbody" ;;
-            run_init_check)    func_run_init_check_body "$distro" >"$fbody" ;;
-            retrieve_repo_file) func_retrieve_repo_file_body "$distro" >"$fbody" ;;
-            disable_selinux)   func_disable_selinux_body "$distro" >"$fbody" ;;
-            detect_selinux)    func_detect_selinux_body "$distro" >"$fbody" ;;
+            __backup_repo_files) func_backup_repo_files_body "$distro" >"$fbody" ;;
+            __rm_repo_files)     func_rm_repo_files_body "$distro" >"$fbody" ;;
+            __test_pkg)          func_test_pkg_body "$distro" >"$fbody" ;;
+            __remove_pkg)        func_remove_pkg_body "$distro" >"$fbody" ;;
+            __install_pkg)       func_install_pkg_body "$distro" >"$fbody" ;;
+            __run_init_check)    func_run_init_check_body "$distro" >"$fbody" ;;
+            __retrieve_repo_file) func_retrieve_repo_file_body "$distro" >"$fbody" ;;
+            __disable_selinux)   func_disable_selinux_body "$distro" >"$fbody" ;;
+            __detect_selinux)    func_detect_selinux_body "$distro" >"$fbody" ;;
             __kernel_ml)       func_kernel_ml_body >"$fbody" ;;
             __kernel_lt)       func_kernel_lt_body >"$fbody" ;;
         esac
@@ -1430,9 +1505,9 @@ generate_min_sh() {
     # Alpine: replace systemctl-based helper functions with OpenRC equivalents
     if [ "$distro" = "alpine" ]; then
         printf '%s\n' '	[ -f "/etc/init.d/$1" ] && return 0 || return 1' >"$tmpdir/body_system_service_exists.txt"
-        replace_func_file "$work" "system_service_exists" "$tmpdir/body_system_service_exists.txt" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
-        printf '%s\n' '	! rc-update show default 2>/dev/null | grep -q "^${1} " && execute "rc-update add ${1} default" "Enabling service: ${1}" || return 1' >"$tmpdir/body_system_service_enable.txt"
-        replace_func_file "$work" "system_service_enable" "$tmpdir/body_system_service_enable.txt" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+        replace_func_file "$work" "__system_service_exists" "$tmpdir/body_system_service_exists.txt" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+        printf '%s\n' '	! rc-update show default 2>/dev/null | grep -q "^${1} " && __execute "rc-update add ${1} default" "Enabling service: ${1}" || return 1' >"$tmpdir/body_system_service_enable.txt"
+        replace_func_file "$work" "__system_service_enable" "$tmpdir/body_system_service_enable.txt" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
     fi
 
     # --- Step 4: Skip RHEL-only sections ---
@@ -1480,8 +1555,66 @@ generate_min_sh() {
     # --- Step 9: Apply package name renames ---
     apply_pkg_renames "$distro" <"$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
 
+    # --- Step 9b: Replace the rhel Remi/dnf-module PHP batch ---
+    php_block "$distro" >"$tmpdir/php_block.txt"
+    awk -v f="$tmpdir/php_block.txt" '
+        /^# __install_pkg cannot accept dnf flags so PHP packages are installed in one$/ {
+            while ((getline line < f) > 0) print line
+            close(f)
+            skip=1
+            next
+        }
+        skip && /^unset _php_pkgs _php_extra_opts _php_stream pkg$/ { skip=0; next }
+        skip { next }
+        { print }
+    ' "$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+
     # --- Step 10: Apply content transforms (paths, variables) ---
     apply_content_transforms "$distro" <"$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+
+    # --- Step 10b: Translate RHEL-only cleanup and package-query lines ---
+    case "$distro" in
+        debian|ubuntu|raspbian)
+            sed -e "s#^_oci_pkgs=.*#_oci_pkgs=\"\$(dpkg -l 2>/dev/null | awk '/^ii/{print \$2}' | grep -E -- '^(oci|cloud|oracle)')\"#" \
+                -e "s|'\\*\\.rpmnew'|'*.dpkg-new'|g" \
+                -e "s|'\\*\\.rpmsave'|'*.dpkg-old'|g" \
+                "$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+            ;;
+        arch)
+            sed -e "s#^_oci_pkgs=.*#_oci_pkgs=\"\$(pacman -Qq 2>/dev/null | grep -E -- '^(oci|cloud|oracle)')\"#" \
+                -e "s|'\\*\\.rpmnew'|'*.pacnew'|g" \
+                -e "s|'\\*\\.rpmsave'|'*.pacsave'|g" \
+                "$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+            ;;
+        alpine)
+            sed -e "s#^_oci_pkgs=.*#_oci_pkgs=\"\$(apk info 2>/dev/null | grep -E -- '^(oci|cloud|oracle)')\"#" \
+                -e "s|'\\*\\.rpmnew'|'*.apk-new'|g" \
+                -e "/'\\*\\.rpmsave'/d" \
+                "$work" >"$tmpdir/work2.sh" && mv "$tmpdir/work2.sh" "$work"
+            ;;
+    esac
+    # /etc/sysconfig/network* is an EL-only interface - drop it everywhere else
+    case "$distro" in
+        debian|ubuntu|raspbian|arch|alpine)
+            sed -i -e '/if \[ -f "\/etc\/sysconfig\/network-scripts\/ifcfg-eth0.sample" \]/,+2d' \
+                -e '/sed -i "s#myserverdomainname#\$HOSTNAME#g" \/etc\/sysconfig\/network$/d' \
+                -e '/sed -i "s#mydomain#\$set_domainname#g" \/etc\/sysconfig\/network$/d' \
+                "$work"
+            ;;
+    esac
+    # Remaining httpd references (paths, service names, hook scripts) are apache2
+    # on Debian family and Alpine - package names were already mapped in Step 9
+    case "$distro" in
+        debian|ubuntu|raspbian|alpine)
+            sed -i 's|httpd|apache2|g' "$work"
+            ;;
+    esac
+    # subscription-manager is a Red Hat subscription plugin - meaningless elsewhere
+    case "$distro" in
+        debian|ubuntu|raspbian|arch|alpine|fedora)
+            sed -i '/^\[ -f "\/etc\/yum\/pluginconf.d\/subscription-manager.conf" \]/d' "$work"
+            ;;
+    esac
 
     # --- Step 11: Alpine-specific: replace systemctl service management ---
     if [ "$distro" = "alpine" ]; then
@@ -1546,20 +1679,20 @@ SHIM
         # busybox mktemp rejects — requires exactly 6 X's.  Redefine execute()
         # after the source block so every install_pkg call works on Alpine.
         cat >"$tmpdir/execute_override.sh" <<'EXECOVERRIDE'
-# Override execute() for Alpine busybox mktemp compatibility
-execute() {
+# Override __execute() for Alpine busybox mktemp compatibility
+__execute() {
 	local cmd="$1"
 	local msg="${2:-$1}"
 	local tmpf
 	tmpf="$(mktemp)" || tmpf="/tmp/execute_$$"
 	printf '[ / ] %s\r' "$msg"
 	if eval "$cmd" >/dev/null 2>"$tmpf"; then
-		printf_execute_success "$msg"
+		__printf_execute_success "$msg"
 		rm -f "$tmpf"
 		return 0
 	else
-		printf_execute_error "$msg"
-		printf_execute_error_stream <"$tmpf"
+		__printf_execute_error "$msg"
+		__printf_execute_error_stream <"$tmpf"
 		rm -f "$tmpf"
 		return 1
 	fi

@@ -276,8 +276,8 @@ __port_in_use() { netstatg 2>&1 | awk '{print $4}' | grep -- ':[0-9]' | awk -F':
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __system_service_exists() { systemctl status "$1" 2>&1 | grep -- 'Loaded:' | grep -iq -- "$1" && return 0 || return 1; }
 __system_service_active() { (systemctl is-enabled "$1" || systemctl is-active "$1") | grep -qiE -- 'enabled|active' || return 1; }
-system_service_enable() { systemctl is-enabled --quiet "$1" 2>/dev/null || __execute "systemctl enable --now $1" "Enabling service: $1" || return 1; }
-system_service_disable() { systemctl is-active --quiet "$1" && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
+__system_service_enable() { systemctl is-enabled --quiet "$1" 2>/dev/null || __execute "systemctl enable --now $1" "Enabling service: $1" || return 1; }
+__system_service_disable() { systemctl is-active --quiet "$1" && __execute "systemctl disable --now $1" "Disabling service: $1" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __does_user_exist() { grep -qs -- "^$1:" "/etc/passwd" || return 1; }
 __does_group_exist() { grep -qs -- "^$1:" "/etc/group" || return 1; }
@@ -438,7 +438,7 @@ __save_remote_file() { __urlverify "$1" && curl -q -SLs "$1" | tee "$2" &>/dev/n
 __retrieve_version_file() { __grab_remote_file "https://github.com/casjay-base/rhel/raw/main/version.txt" | head -n1 || echo "Unknown version"; }
 __domain_name() { hostname -d | grep -Fv -- '(none)' | grep -- '^' || hostname -f | awk -F'.' '{$1="";OFS="." ; print $0}' | sed 's/^.//;s| |.|g' | grep -- '^' || echo "$HOSTNAME"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_head() {
+__printf_head() {
   printf '%b##################################################\n' "$CYAN"
   printf '%b%s%b\n' $GREEN "$*" $CYAN
   printf '##################################################%b\n' $NC
@@ -446,7 +446,7 @@ printf_head() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __printf_clear() {
   clear
-  printf_head "$*"
+  __printf_head "$*"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rm_if_exists() {
@@ -631,35 +631,44 @@ if [ -n "$(type -P systemmgr)" ]; then
 fi
 __printf_green "Installer has been initialized"
 ##################################################################################################################
-printf_head "Fixing initscripts"
+__printf_head "Fixing initscripts"
 ##################################################################################################################
 __devnull rpm -ev --nodeps initscripts
 __devnull yum -yy --allowerasing install initscripts net-tools
 ##################################################################################################################
-printf_head "Installing vnstat"
+__printf_head "Installing vnstat"
 ##################################################################################################################
 __install_pkg vnstat
-system_service_enable vnstat && systemctl restart vnstat &>/dev/null
+__system_service_enable vnstat && systemctl restart vnstat &>/dev/null
 ##################################################################################################################
-printf_head "Configuring the kernel"
+__printf_head "Configuring the kernel"
 ##################################################################################################################
 if [ "$DEFAULT_KERNEL" = "ml" ] || [ "$DEFAULT_KERNEL" = "kernel-ml" ]; then
   __kernel_ml
   __install_pkg kernel-ml-modules
   __install_pkg kernel-ml-modules-extra
 elif [ "$DEFAULT_KERNEL" = "lt" ] || [ "$DEFAULT_KERNEL" = "kernel-lt" ]; then
-  __kernel_lt
-  __install_pkg kernel-lt-modules
-  __install_pkg kernel-lt-modules-extra
+  # elrepo publishes no kernel-lt for EL10+ - fall back to kernel-ml
+  if [ "$RELEASE_VER" -ge 10 ]; then
+    __printf_yellow "kernel-lt is not published for EL$RELEASE_VER - using kernel-ml instead"
+    DEFAULT_KERNEL="kernel-ml"
+    __kernel_ml
+    __install_pkg kernel-ml-modules
+    __install_pkg kernel-ml-modules-extra
+  else
+    __kernel_lt
+    __install_pkg kernel-lt-modules
+    __install_pkg kernel-lt-modules-extra
+  fi
 else
   DEFAULT_KERNEL="kernel"
 fi
 ##################################################################################################################
-printf_head "Disabling selinux"
+__printf_head "Disabling selinux"
 ##################################################################################################################
 __disable_selinux
 ##################################################################################################################
-printf_head "Configuring cores for compiling"
+__printf_head "Configuring cores for compiling"
 ##################################################################################################################
 numberofcores=$(grep -c -- ^processor /proc/cpuinfo)
 __printf_yellow "Total cores avaliable: $numberofcores"
@@ -721,11 +730,11 @@ EOF
   fi
 fi
 ##################################################################################################################
-printf_head "Grabbing ssh key[s]: from $SSH_KEY_LOCATION for $USER"
+__printf_head "Grabbing ssh key[s]: from $SSH_KEY_LOCATION for $USER"
 ##################################################################################################################
 __get_user_ssh_key
 ##################################################################################################################
-printf_head "Configuring the system"
+__printf_head "Configuring the system"
 ##################################################################################################################
 __retrieve_repo_file
 __run_external timedatectl set-timezone America/New_York
@@ -737,19 +746,38 @@ __install_pkg net-tools
 __install_pkg wget
 __install_pkg curl
 __install_pkg git
-__install_pkg nail
+__install_pkg s-nail
 __install_pkg e2fsprogs
-__install_pkg redhat-lsb
-__install_pkg vim
+[ "$RELEASE_VER" -le 8 ] && __install_pkg redhat-lsb || true
+__install_pkg vim-enhanced
 __install_pkg unzip
 __install_pkg bind
 __install_pkg bind-utils
 __rm_if_exists /tmp/dotfiles
 __rm_if_exists /root/anaconda-ks.cfg /var/log/anaconda
 __run_external yum update -q -yy --skip-broken
-[ $RELEASE_VER -ge 9 ] && __install_pkg glibc-langpack-en
+[ "$RELEASE_VER" -ge 9 ] && __install_pkg glibc-langpack-en || true
+# EL9-and-earlier packages (dropped from EL10 repos)
+if [ "$RELEASE_VER" -le 9 ]; then
+  __install_pkg awstats
+  __install_pkg fortune-mod
+  __install_pkg perl-DBD-Firebird
+  __install_pkg python3-future
+fi
+# mlocate was replaced by plocate in EL10
+if [ "$RELEASE_VER" -le 9 ]; then
+  __install_pkg mlocate
+else
+  __install_pkg plocate
+fi
+# zlib was replaced by zlib-ng-compat in EL10
+if [ "$RELEASE_VER" -le 9 ]; then
+  __install_pkg zlib
+else
+  __install_pkg zlib-ng-compat
+fi
 ##################################################################################################################
-printf_head "Enabling ip forwarding"
+__printf_head "Enabling ip forwarding"
 ##################################################################################################################
 for sysctlconf in /etc/sysctl.conf /etc/sysctl.d/*; do
   if grep -qsF -- 'net.ipv4.ip_forward' "$sysctlconf"; then
@@ -772,10 +800,8 @@ if [ "$sysctl_ip6_forward" = 0 ]; then
   echo "net.ipv6.conf.all.forwarding=1" >>'/etc/sysctl.conf'
 fi
 ##################################################################################################################
-printf_head "Installing the packages for $RELEASE_NAME"
+__printf_head "Installing the packages for $RELEASE_NAME"
 ##################################################################################################################
-__install_pkg awffull
-__install_pkg awstats
 __install_pkg basesystem
 __install_pkg bash
 __install_pkg bash-completion
@@ -784,7 +810,6 @@ __install_pkg certbot
 __install_pkg cockpit
 __install_pkg cockpit-packagekit
 __install_pkg cockpit-storaged
-__install_pkg cockpit-pcp
 __install_pkg cockpit-bridge
 __install_pkg cockpit-system
 __install_pkg cockpit-ws
@@ -802,18 +827,17 @@ __install_pkg dialog
 __install_pkg docker-ce
 __install_pkg ethtool
 __install_pkg findutils
-__install_pkg fortune-mod
 __install_pkg gawk
 __install_pkg gc
 __install_pkg gcc
 __install_pkg git
 __install_pkg gnupg2
 __install_pkg gnutls
-__install_pkg grub2
+__install_pkg grub2-tools
 __install_pkg grub2-tools-extra
 __install_pkg grubby
 __install_pkg gzip
-__install_pkg hardlink
+__install_pkg util-linux-core
 __install_pkg harfbuzz
 __install_pkg hdparm
 __install_pkg hostname
@@ -822,11 +846,9 @@ __install_pkg httpd
 __install_pkg less
 __install_pkg logrotate
 __install_pkg lsof
-__install_pkg mailx
 __install_pkg make
 __install_pkg man-db
 __install_pkg man-pages
-__install_pkg mlocate
 __install_pkg mod_fcgid
 __install_pkg mod_geoip
 __install_pkg mod_http2
@@ -850,14 +872,13 @@ __install_pkg ntp
 __install_pkg oddjob-mkhomedir
 __install_pkg openssh-server
 __install_pkg openssl
-__install_pkg passwd
+__install_pkg shadow-utils
 __install_pkg perl-CPAN
 __install_pkg perl-CPAN-Meta
 __install_pkg perl-DBD-Pg
 __install_pkg perl-DBD-MySQL
 __install_pkg perl-DBD-SQLite
 __install_pkg perl-DBD-MariaDB
-__install_pkg perl-DBD-Firebird
 __install_pkg php
 __install_pkg php-cli
 __install_pkg php-common
@@ -876,12 +897,8 @@ __install_pkg postfix-pcre
 __install_pkg python3-certbot-dns-rfc2136
 __install_pkg python3-configargparse
 __install_pkg python3-cryptography
-__install_pkg python3-enum34
-__install_pkg python3-funcsigs
-__install_pkg python3-future
 __install_pkg python3-idna
 __install_pkg python3-josepy
-__install_pkg python3-mock
 __install_pkg python3-neovim
 __install_pkg python3-parsedatetime
 __install_pkg python3-pbr
@@ -905,7 +922,6 @@ __install_pkg symlinks
 __install_pkg tar
 __install_pkg tzdata
 __install_pkg unzip
-__install_pkg webalizer
 __install_pkg wget
 __install_pkg which
 __install_pkg whois
@@ -913,7 +929,6 @@ __install_pkg xz
 __install_pkg xz-libs
 __install_pkg yum-utils
 __install_pkg zip
-__install_pkg zlib
 ##################################################################################################################
 if [ "$SYSTEM_TYPE" = "dns" ]; then
   if __devnull __install_pkg ntp || __devnull __install_pkg ntpsec; then
@@ -926,11 +941,11 @@ else
   SERVICES_ENABLE="$SERVICES_ENABLE chrony"
 fi
 ##################################################################################################################
-printf_head "Fixing grub"
+__printf_head "Fixing grub"
 ##################################################################################################################
 __run_grub
 ##################################################################################################################
-printf_head "Installing custom web server files"
+__printf_head "Installing custom web server files"
 ##################################################################################################################
 [ -d "$CONFIG_TEMP_DIR" ] && __devnull __rm_if_exists "$CONFIG_TEMP_DIR"
 __devnull git clone -q "https://github.com/casjay-base/rhel" "$CONFIG_TEMP_DIR"
@@ -951,7 +966,7 @@ fi
 run_post_message="Installing default server files" __run_post sudo -HE STATICSITE="$(hostname -f)" bash -c "$(curl -LSs "https://github.com/casjay-templates/default-web-assets/raw/main/setup.sh")"
 [ -f "/etc/httpd/modules/mod_wsgi_python3.so" ] && ln -sf /etc/httpd/modules/mod_wsgi_python3.so /etc/httpd/modules/mod_wsgi.so
 ##################################################################################################################
-printf_head "Deleting files"
+__printf_head "Deleting files"
 ##################################################################################################################
 if __system_service_active named || __port_in_use "53"; then
   __devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
@@ -998,7 +1013,7 @@ for rm_file in /etc/cron*/0* /etc/cron*/dailyjobs /var/ftp/uploads /etc/httpd/co
   __run_post __devnull __rm_if_exists "$rm_file"
 done
 ##################################################################################################################
-printf_head "setting up config files"
+__printf_head "setting up config files"
 ##################################################################################################################
 set_domainname="$(__domain_name)"
 myhostnameshort="$SET_HOSTNAME"
@@ -1083,7 +1098,7 @@ fi
 __devnull systemctl daemon-reload
 unset postfix_proto
 ##################################################################################################################
-printf_head "Installing incus"
+__printf_head "Installing incus"
 ##################################################################################################################
 incus_setup_failed="no"
 incus_setup_message="Initializing incus has failed"
@@ -1097,33 +1112,39 @@ if ! grep -Rqsi -- 'copr.*incus' '/etc/yum.repos.d'; then
   __devnull dnf -y config-manager --enable crb
   __yum makecache
 fi
-__install_pkg incus
-__install_pkg incus-tools
-__install_pkg incus-selinux
-unset exclude_packages
-[ -n "$(type -p setupmgr)" ] && setupmgr incus
-echo "0:1000000:1000000000" | tee /etc/subuid /etc/subgid >/dev/null
-if __system_service_exists "incus"; then
-  __devnull systemctl start "incus"
-  __devnull systemctl restart "incus"
-  __devnull systemctl enable --now incus || incus_setup_failed="yes"
+# the incus copr does not publish incus for every EL release - skip cleanly when it is missing
+if ! __devnull yum -q info incus; then
+  __printf_yellow "incus is not available for EL$RELEASE_VER - skipping incus setup"
+  unset exclude_packages incus_setup_failed incus_setup_message
 else
-  incus_setup_failed=yes
-fi
-[ "$(ls -A /var/lib/incus/* 2>/dev/null | wc -l)" != "0" ] && incus_setup_message="incus seems to be initialized" || { incus_setup_failed="yes" && incus_setup_message="incus seems to have already been initialized"; }
-if [ "$incus_setup_failed" = "no" ]; then
-  if incus admin init --network-address 127.0.0.1 --network-port 60443 --storage-backend dir --quiet --auto; then
-    __devnull incus network set incusbr0 ipv4.firewall false
-    __devnull incus network set incusbr0 ipv6.firewall false
-    __devnull systemctl restart incus
-    __printf_blue "incus has been initialized"
-    unset incus_setup_failed incus_setup_message
+  __install_pkg incus
+  __install_pkg incus-tools
+  __install_pkg incus-selinux
+  unset exclude_packages
+  [ -n "$(type -p setupmgr)" ] && setupmgr incus
+  echo "0:1000000:1000000000" | tee /etc/subuid /etc/subgid >/dev/null
+  if __system_service_exists "incus"; then
+    __devnull systemctl start "incus"
+    __devnull systemctl restart "incus"
+    __devnull systemctl enable --now incus || incus_setup_failed="yes"
   else
-    incus_setup_failed="yes"
+    incus_setup_failed=yes
+  fi
+  [ "$(ls -A /var/lib/incus/* 2>/dev/null | wc -l)" != "0" ] && incus_setup_message="incus seems to be initialized" || { incus_setup_failed="yes" && incus_setup_message="incus seems to have already been initialized"; }
+  if [ "$incus_setup_failed" = "no" ]; then
+    if incus admin init --network-address 127.0.0.1 --network-port 60443 --storage-backend dir --quiet --auto; then
+      __devnull incus network set incusbr0 ipv4.firewall false
+      __devnull incus network set incusbr0 ipv6.firewall false
+      __devnull systemctl restart incus
+      __printf_blue "incus has been initialized"
+      unset incus_setup_failed incus_setup_message
+    else
+      incus_setup_failed="yes"
+    fi
   fi
 fi
 ##################################################################################################################
-printf_head "Configuring the firewall"
+__printf_head "Configuring the firewall"
 ##################################################################################################################
 if type -P firewall-cmd >/dev/null 2>&1 && __system_service_active firewalld; then
 	__devnull systemctl start firewalld
@@ -1145,11 +1166,11 @@ if type -P firewall-cmd >/dev/null 2>&1 && __system_service_active firewalld; th
 	__devnull systemctl stop firewalld
 fi
 ##################################################################################################################
-printf_head "Configuring applications"
+__printf_head "Configuring applications"
 ##################################################################################################################
 __devnull timedatectl set-ntp true
 ##################################################################################################################
-printf_head "Configuring cloudflare dns for $SET_HOSTNAME"
+__printf_head "Configuring cloudflare dns for $SET_HOSTNAME"
 ##################################################################################################################
 CLOUDFLARE_PROXY="${CLOUDFLARE_PROXY:-false}"
 if [ -f "$HOME/.config/secure/cloudflare.txt" ]; then
@@ -1208,7 +1229,7 @@ EOF
   unset CLOUDFLARE_DOMAIN
 fi
 ##################################################################################################################
-printf_head "Setting up ssl certificates"
+__printf_head "Setting up ssl certificates"
 ##################################################################################################################
 ## If using letsencrypt certificates
 [ -f "$HOME/.config/myscripts/acme-cli/settings.conf" ] && . "$HOME/.config/myscripts/acme-cli/settings.conf"
@@ -1320,7 +1341,7 @@ fi
 [ -n "$(type -P update-ca-trust)" ] && __devnull update-ca-trust && __devnull update-ca-trust extract
 [ -n "$(type -P dpkg-reconfigure)" ] && __devnull dpkg-reconfigure ca-certificates
 ##################################################################################################################
-printf_head "Setting up rsyncd"
+__printf_head "Setting up rsyncd"
 ##################################################################################################################
 # The [backup] module requires an auth secret - generate one on first run only,
 # it is never shipped in casjay-base
@@ -1331,7 +1352,7 @@ fi
 chown -f root:root "/etc/rsyncd.secrets" 2>/dev/null
 chmod -f 600 "/etc/rsyncd.secrets" 2>/dev/null
 ##################################################################################################################
-printf_head "Setting up munin-node"
+__printf_head "Setting up munin-node"
 ##################################################################################################################
 mkdir -p "/var/log/munin"
 chmod -f 777 "/var/log/munin"
@@ -1350,7 +1371,7 @@ fi
 chown -f root:munin "/etc/munin/plugin-conf.d/munin-node" 2>/dev/null
 chmod -f 640 "/etc/munin/plugin-conf.d/munin-node" 2>/dev/null
 ##################################################################################################################
-printf_head "Setting up tor"
+__printf_head "Setting up tor"
 ##################################################################################################################
 if [ -n "$(type -P tor 2>/dev/null)" ]; then
   __devnull systemctl restart tor && sleep 5
@@ -1364,7 +1385,7 @@ if [ -n "$(type -P tor 2>/dev/null)" ]; then
   printf '%s\n\%s\n' "# Generate tor hostnames" "#30 * * * * root " >"/etc/cron.d/tor_hostname"
 fi
 ##################################################################################################################
-printf_head "Setting up bind dns [named]"
+__printf_head "Setting up bind dns [named]"
 ##################################################################################################################
 if [ -z "$(command -v named)" ]; then
   __devnull __rm_if_exists /etc/named
@@ -1373,7 +1394,7 @@ if [ -z "$(command -v named)" ]; then
   __devnull __rm_if_exists /etc/logrotate.d/named
 fi
 ##################################################################################################################
-printf_head "Generating default webserver for $HOSTNAME"
+__printf_head "Generating default webserver for $HOSTNAME"
 ##################################################################################################################
 if [ -z "$IS_INSTALLED_HTTPD" ] || [ -z "$IS_INSTALLED_NGINX" ]; then
   if [ -d "/var/www/nginx/domains/$HOSTNAME" ]; then
@@ -1422,7 +1443,7 @@ if [ -n "$GET_WEB_GROUP" ]; then
   done
 fi
 ##################################################################################################################
-printf_head "Setting up the reverse proxy for cockpit"
+__printf_head "Setting up the reverse proxy for cockpit"
 ##################################################################################################################
 if [ -d "/etc/nginx/vhosts.d" ]; then
   cat <<EOF | tee "/etc/nginx/vhosts.d/cockpit.$set_domainname.conf" >/dev/null
@@ -1473,7 +1494,7 @@ server {
 EOF
 fi
 ##################################################################################################################
-printf_head "Creating directories"
+__printf_head "Creating directories"
 ##################################################################################################################
 mkdir -p "/mnt/backups" "/var/www/html/.well-known" "/etc/letsencrypt/live"
 echo "" >>/etc/fstab
@@ -1484,15 +1505,15 @@ if [ -n "$IS_NETWORK_INTERNAL" ] && __devnull ping -q -W 1 -c 2 -t 1 10.0.254.1;
 fi
 mount -a
 ##################################################################################################################
-printf_head "Installing custom system configs"
+__printf_head "Installing custom system configs"
 ##################################################################################################################
 __run_post "systemmgr install $SYSTEMMGR_CONFIGS"
 ##################################################################################################################
-printf_head "Installing custom dotfiles"
+__printf_head "Installing custom dotfiles"
 ##################################################################################################################
 __run_post "dfmgr update $DFMGR_CONFIGS"
 ##################################################################################################################
-printf_head "Updating personal dotfiles"
+__printf_head "Updating personal dotfiles"
 ##################################################################################################################
 if [ -x "$HOME/.local/dotfiles/personal/install.sh" ]; then
   __run_external "$HOME/.local/dotfiles/personal/install.sh"
@@ -1501,48 +1522,48 @@ fi
 [ -f "$HOME/.profile" ] && . "$HOME/.profile"
 ##################################################################################################################
 if [ "$SYSTEM_TYPE" = "vpn" ]; then
-  printf_head "Disabling services: httpd,nginx"
-  system_service_disable httpd
-  system_service_disable nginx
+  __printf_head "Disabling services: httpd,nginx"
+  __system_service_disable httpd
+  __system_service_disable nginx
 fi
 if [ "$SYSTEM_TYPE" = "mail" ]; then
   if [ -x "$HOME/Projects/github/dfprivate/email/install.sh" ]; then
-    printf_head "Running installer script for email server"
+    __printf_head "Running installer script for email server"
     eval "$HOME/Projects/github/dfprivate/email/install.sh" >/dev/null 2>&1
   fi
 elif [ "$SYSTEM_TYPE" = "db" ] || [ "$set_domainname" = "sqldb.us" ]; then
   if [ -x "$HOME/Projects/github/dfprivate/sql/install.sh" ]; then
-    printf_head "Running installer script for database server"
+    __printf_head "Running installer script for database server"
     eval "$HOME/Projects/github/dfprivate/sql/install.sh" >/dev/null 2>&1
   fi
 elif [ "$SYSTEM_TYPE" = "dns" ] || [ "$set_domainname" = "casjaydns.com" ]; then
   if [ -x "$HOME/Projects/github/dfprivate/dns/install.sh" ]; then
-    printf_head "Running installer script for dns server"
+    __printf_head "Running installer script for dns server"
     eval "$HOME/Projects/github/dfprivate/dns/install.sh" >/dev/null 2>&1
   fi
 fi
 ##################################################################################################################
-printf_head "Enabling services"
+__printf_head "Enabling services"
 ##################################################################################################################
 for service_enable in $SERVICES_ENABLE; do
   if [ -n "$service_enable" ] && __system_service_exists "$service_enable"; then
-    system_service_enable $service_enable
+    __system_service_enable $service_enable
     systemctl restart $service_enable >/dev/null 2>&1
   fi
 done
 ##################################################################################################################
-printf_head "Disabling services"
+__printf_head "Disabling services"
 ##################################################################################################################
 for service_disable in $SERVICES_DISABLE; do
   if [ -n "$service_disable" ] && __system_service_exists "$service_disable"; then
-    system_service_disable $service_disable
+    __system_service_disable $service_disable
   fi
 done
 ##################################################################################################################
-printf_head "Setting up docker"
+__printf_head "Setting up docker"
 ##################################################################################################################
 if [ -n "$(type -P dockermgr 2>/dev/null)" ]; then
-  system_service_enable docker
+  __system_service_enable docker
   __devnull systemctl restart docker
   __run_post dockermgr init && __devnull dockermgr init
 fi
@@ -1550,17 +1571,17 @@ if [ -n "$(type -P composemgr 2>/dev/null)" ]; then
   __run_post composemgr --config && __devnull composemgr --env
 fi
 ##################################################################################################################
-printf_head "Disabling dnsmasq"
+__printf_head "Disabling dnsmasq"
 ##################################################################################################################
-system_service_disable dnsmasq
+__system_service_disable dnsmasq
 __devnull sed -i 's/^dns=dnsmasq/#&/' /etc/NetworkManager/NetworkManager.conf
 __devnull killall dnsmasq
 ##################################################################################################################
-printf_head "Fixing ip address"
+__printf_head "Fixing ip address"
 ##################################################################################################################
 /root/bin/changeip.sh >/dev/null 2>&1
 ##################################################################################################################
-printf_head "Cleaning up"
+__printf_head "Cleaning up"
 ##################################################################################################################
 [ -f "/etc/yum/pluginconf.d/subscription-manager.conf" ] && echo "" >"/etc/yum/pluginconf.d/subscription-manager.conf"
 find "/etc" "/usr" "/var" -iname '*.rpmnew' -exec rm -Rf {} \; >/dev/null 2>&1
@@ -1569,7 +1590,7 @@ __devnull rm -Rf /tmp/*.tar "/tmp/dotfiles" "$CONFIG_TEMP_DIR"
 __devnull __retrieve_repo_file
 history -c && history -w
 ##################################################################################################################
-printf_head "Installer version: $(__retrieve_version_file)"
+__printf_head "Installer version: $(__retrieve_version_file)"
 ##################################################################################################################
 mkdir -p "/etc/casjaysdev/updates/versions"
 echo "$VERSION" >"/etc/casjaysdev/updates/versions/configs.txt"
@@ -1578,7 +1599,7 @@ echo "Installed on $(date +'%Y-%m-%d at %H:%M %Z')" >"/etc/casjaysdev/updates/ve
 chmod -Rf 664 "/etc/casjaysdev/updates/versions/configs.txt"
 chmod -Rf 664 "/etc/casjaysdev/updates/versions/installed.txt"
 ##################################################################################################################
-printf_head "Finished configuring $HOSTNAME"
+__printf_head "Finished configuring $HOSTNAME"
 echo ""
 ##################################################################################################################
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

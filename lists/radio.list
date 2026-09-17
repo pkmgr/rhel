@@ -8,7 +8,6 @@ audit-libs-python
 augeas-libs
 autogen-libopts
 avahi-libs
-awffull
 awstats
 basesystem
 bash
@@ -124,7 +123,7 @@ gsm
 gtk-update-icon-cache
 gtk2
 gzip
-hardlink
+util-linux-core
 harfbuzz
 hdparm
 hicolor-icon-theme
@@ -168,7 +167,6 @@ lynx
 lz4
 lzo
 mailcap
-mailx
 make
 man-db
 mdadm
@@ -176,7 +174,7 @@ mesa-libEGL
 mesa-libGL
 mesa-libgbm
 mesa-libglapi
-mlocate
+plocate
 mod_fcgid
 mod_geoip
 mod_http2
@@ -218,7 +216,7 @@ p11-kit-trust
 pam
 pango
 parted
-passwd
+shadow-utils
 pcre
 perl
 perl-Authen-SASL
@@ -474,7 +472,6 @@ sed
 sendxmpp
 setools-libs
 setup
-shadow-utils
 shared-mime-info
 shorewall
 shorewall-core
@@ -517,7 +514,6 @@ vim-enhanced
 vim-filesystem
 vim-minimal
 vnstat
-webalizer
 wget
 which
 wpa_supplicant
@@ -531,4 +527,4 @@ yum
 yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
-zlib
+zlib-ng-compat

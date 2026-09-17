@@ -1,5 +1,4 @@
 authconfig
-awffull
 awstats
 bash-completion
 bc
@@ -24,7 +23,6 @@ cockpit
 cockpit-bridge
 cockpit-dashboard
 cockpit-packagekit
-cockpit-pcp
 cockpit-system
 cockpit-ws
 composer
@@ -126,18 +124,17 @@ gpgme
 gpm-libs
 grep
 groff-base
-grub2
+grub2-tools
 grub2-common
 grub2-pc
 grub2-pc-modules
-grub2-tools
 grub2-tools-extra
 grub2-tools-minimal
 grubby
 gssproxy
 guile
 gzip
-hardlink
+util-linux-core
 harfbuzz
 hdparm
 hostname
@@ -179,7 +176,6 @@ lz4
 lzo
 m4
 mailcap
-mailx
 make
 man-db
 man-pages
@@ -187,7 +183,7 @@ mesa-libEGL
 mesa-libgbm
 mesa-libGL
 mesa-libglapi
-mlocate
+plocate
 mozjs17
 mrtg
 mtr
@@ -235,7 +231,7 @@ PackageKit-yum
 pam
 pango
 parted
-passwd
+shadow-utils
 pcre
 pcre2
 perl
@@ -589,7 +585,6 @@ sendxmpp
 setools-libs
 setup
 setuptool
-shadow-utils
 shared-mime-info
 slang
 smartmontools
@@ -633,15 +628,13 @@ usbutils
 usermode
 util-linux
 vconfig
-vim
-vim-common
 vim-enhanced
+vim-common
 vim-filesystem
 vim-minimal
 vim-powerline
 vnstat
 volume_key-libs
-webalizer
 wget
 which
 whois
@@ -662,4 +655,4 @@ yum-metadata-parser
 yum-plugin-fastestmirror
 yum-utils
 zip
-zlib
+zlib-ng-compat
