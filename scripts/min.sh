@@ -35,6 +35,9 @@ PKMGR_FORCE_INSTALL="${PKMGR_FORCE_INSTALL:-no}"
 # a hardened root umask of 077 would otherwise be baked into every file and
 # directory this script creates and then rsynced onto /etc, /usr and /var
 umask 022
+# tput and clear both abort with "TERM environment variable not set" when the
+# script is run over a non-interactive ssh session or from cron
+export TERM="${TERM:-xterm}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set bash options
 if [ "$1" = "--debug" ]; then shift 1 && set -xo pipefail && export SCRIPT_OPTS="--debug" && export _DEBUG="on"; fi
