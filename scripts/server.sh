@@ -246,6 +246,7 @@ BACKUP_DIR="$HOME/Documents/backups/$(date +'%Y/%m/%d')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SSH_KEY_LOCATION="${SSH_KEY_LOCATION:-https://github.com/$GITHUB_USER.keys}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# db* and sql* hosts both map onto SYSTEM_TYPE=sql, which runs the database installer further down
 if echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^pbx'; then
   SYSTEM_TYPE="pbx"
 elif echo "${SET_HOSTNAME:-$HOSTNAME}" | grep -qE -- '^dns'; then
@@ -1531,7 +1532,7 @@ if [ "$SYSTEM_TYPE" = "mail" ]; then
     __printf_head "Running installer script for email server"
     eval "$HOME/Projects/github/dfprivate/email/install.sh" >/dev/null 2>&1
   fi
-elif [ "$SYSTEM_TYPE" = "db" ] || [ "$set_domainname" = "sqldb.us" ]; then
+elif [ "$SYSTEM_TYPE" = "sql" ] || [ "$set_domainname" = "sqldb.us" ]; then
   if [ -x "$HOME/Projects/github/dfprivate/sql/install.sh" ]; then
     __printf_head "Running installer script for database server"
     eval "$HOME/Projects/github/dfprivate/sql/install.sh" >/dev/null 2>&1

@@ -318,19 +318,28 @@ PKMGR_SETUP_ACCOUNT_USERS="${PKMGR_SETUP_ACCOUNT_USERS:-}"
 PKMGR_SETUP_ACCOUNT_BASE_UID="${PKMGR_SETUP_ACCOUNT_BASE_UID:-10000}"
 declare -a SETUP_ACCOUNT_CREDS=()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PKMGR_INSTALL_HTTPD_SET="${PKMGR_INSTALL_HTTPD:+yes}"
+PKMGR_INSTALL_NGINX_SET="${PKMGR_INSTALL_NGINX:+yes}"
 PKMGR_INSTALL_HTTPD="${PKMGR_INSTALL_HTTPD:-yes}"
 PKMGR_INSTALL_NGINX="${PKMGR_INSTALL_NGINX:-yes}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "${SET_HOSTNAME:-$HOSTNAME}" in
-dc*) SYSTEM_TYPE="dc" PKMGR_INSTALL_HTTPD="no" PKMGR_INSTALL_NGINX="no" ;;
-pbx*) SYSTEM_TYPE="pbx" PKMGR_INSTALL_HTTPD="no" PKMGR_INSTALL_NGINX="no" ;;
+dc*) SYSTEM_TYPE="dc" ;;
+pbx*) SYSTEM_TYPE="pbx" ;;
 dns*) SYSTEM_TYPE="dns" ;;
 vpn*) SYSTEM_TYPE="vpn" ;;
 mail*) SYSTEM_TYPE="mail" ;;
 server*) SYSTEM_TYPE="server" ;;
+# db* and sql* hosts both run the database installer further down (SYSTEM_TYPE=sql)
 sql* | db*) SYSTEM_TYPE="sql" ;;
 devel* | build* | ci* | testing*) SYSTEM_TYPE="devel" ;;
 esac
+# dc and pbx hosts run neither web stack, unless the caller asked explicitly
+if [ "$SYSTEM_TYPE" = "dc" ] || [ "$SYSTEM_TYPE" = "pbx" ]; then
+	[ -n "$PKMGR_INSTALL_HTTPD_SET" ] || PKMGR_INSTALL_HTTPD="no"
+	[ -n "$PKMGR_INSTALL_NGINX_SET" ] || PKMGR_INSTALL_NGINX="no"
+fi
+unset PKMGR_INSTALL_HTTPD_SET PKMGR_INSTALL_NGINX_SET
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SERVICES_ENABLE="cockpit cockpit.socket docker fail2ban munin-node ntpd php-fpm postfix proftpd rsyslog firewalld snmpd sshd uptimed downtimed "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1290,9 +1299,7 @@ if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
 	fi
 	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/{shorewall,shorewall6}
 	__devnull mkdir -p /etc/rsync.d /var/log/named
-	__devnull rsync -avh ##################################################################################################################
-	__printf_head "Deleting files"
-	P $CONFIG_TEMP_DIR/{etc,root,usr,var}* /
+	__devnull rsync -avhP $CONFIG_TEMP_DIR/{etc,root,usr,var}* /
 	# the tree-wide 644 above must never reach private key material or /root
 	__devnull find /etc/ssl /etc/pki /etc/cockpit -type f -name "*.key" -exec chmod 600 {} \;
 	__devnull find /etc/ssl/CA/CasjaysDev/private -type d -exec chmod 700 {} \;
@@ -1786,7 +1793,7 @@ if [ "$SYSTEM_TYPE" = "mail" ]; then
 		__printf_head "Running installer script for email server"
 		eval "$HOME/Projects/github/dfprivate/email/install.sh" >/dev/null 2>&1
 	fi
-elif [ "$SYSTEM_TYPE" = "db" ] || [ "$set_domainname" = "sqldb.us" ]; then
+elif [ "$SYSTEM_TYPE" = "sql" ] || [ "$set_domainname" = "sqldb.us" ]; then
 	if [ -x "$HOME/Projects/github/dfprivate/sql/install.sh" ]; then
 		__printf_head "Running installer script for database server"
 		eval "$HOME/Projects/github/dfprivate/sql/install.sh" >/dev/null 2>&1
