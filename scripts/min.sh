@@ -285,9 +285,19 @@ SET_HOSTNAME="${SET_HOSTNAME:-${MY_HOST_NAME%%.*}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SCRIPT_NAME="$APPNAME"
 SCRIPT_NAME="${SCRIPT_NAME%.*}"
-RELEASE_VER="$(. /etc/os-release 2>/dev/null; echo "${VERSION_ID%%.*}")"
-RELEASE_NAME="$(. /etc/os-release 2>/dev/null; n="${NAME,,}"; echo "${n%% *}")"
-RELEASE_ID="$(. /etc/os-release 2>/dev/null; echo "${ID,,}")"
+RELEASE_VER="$(
+	. /etc/os-release 2>/dev/null
+	echo "${VERSION_ID%%.*}"
+)"
+RELEASE_NAME="$(
+	. /etc/os-release 2>/dev/null
+	n="${NAME,,}"
+	echo "${n%% *}"
+)"
+RELEASE_ID="$(
+	. /etc/os-release 2>/dev/null
+	echo "${ID,,}"
+)"
 RELEASE_TYPE="$(
 	. /etc/os-release 2>/dev/null
 	i="${ID,,}"
@@ -308,17 +318,21 @@ PKMGR_SETUP_ACCOUNT_USERS="${PKMGR_SETUP_ACCOUNT_USERS:-}"
 PKMGR_SETUP_ACCOUNT_BASE_UID="${PKMGR_SETUP_ACCOUNT_BASE_UID:-10000}"
 declare -a SETUP_ACCOUNT_CREDS=()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PKMGR_INSTALL_HTTPD="${PKMGR_INSTALL_HTTPD:-yes}"
+PKMGR_INSTALL_NGINX="${PKMGR_INSTALL_NGINX:-yes}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "${SET_HOSTNAME:-$HOSTNAME}" in
-	pbx*)                            SYSTEM_TYPE="pbx" ;;
-	dns*)                            SYSTEM_TYPE="dns" ;;
-	vpn*)                            SYSTEM_TYPE="vpn" ;;
-	mail*)                           SYSTEM_TYPE="mail" ;;
-	server*)                         SYSTEM_TYPE="server" ;;
-	sql*|db*)                        SYSTEM_TYPE="sql" ;;
-	devel*|build*|ci*|testing*)      SYSTEM_TYPE="devel" ;;
+dc*) SYSTEM_TYPE="dc" PKMGR_INSTALL_HTTPD="no" PKMGR_INSTALL_NGINX="no" ;;
+pbx*) SYSTEM_TYPE="pbx" PKMGR_INSTALL_HTTPD="no" PKMGR_INSTALL_NGINX="no" ;;
+dns*) SYSTEM_TYPE="dns" ;;
+vpn*) SYSTEM_TYPE="vpn" ;;
+mail*) SYSTEM_TYPE="mail" ;;
+server*) SYSTEM_TYPE="server" ;;
+sql* | db*) SYSTEM_TYPE="sql" ;;
+devel* | build* | ci* | testing*) SYSTEM_TYPE="devel" ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SERVICES_ENABLE="cockpit cockpit.socket docker fail2ban httpd munin-node nginx ntpd php-fpm postfix proftpd rsyslog firewalld snmpd sshd uptimed downtimed "
+SERVICES_ENABLE="cockpit cockpit.socket docker fail2ban munin-node ntpd php-fpm postfix proftpd rsyslog firewalld snmpd sshd uptimed downtimed "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SERVICES_DISABLE="avahi-daemon.service avahi-daemon.socket cups.path cups.service cups.socket dhcpd dhcpd6 dm-event.socket "
 SERVICES_DISABLE+="import-state.service irqbalance.service iscsi iscsid.socket iscsiuio.socket kdump loadmodules.service lvm2-lvmetad.socket "
@@ -344,7 +358,11 @@ __does_group_exist() { grep -qs -- "^$1:" "/etc/group" || return 1; }
 __get_www_user() {
 	local u=""
 	while IFS=: read -r u _; do
-		case "$u" in www-data|apache|nginx) echo "$u"; return 0 ;; esac
+		case "$u" in www-data | apache | nginx)
+			echo "$u"
+			return 0
+			;;
+		esac
 	done </etc/passwd
 	return 1
 }
@@ -352,7 +370,11 @@ __get_www_user() {
 __get_www_group() {
 	local g=""
 	while IFS=: read -r g _; do
-		case "$g" in www-data|apache|nginx) echo "$g"; return 0 ;; esac
+		case "$g" in www-data | apache | nginx)
+			echo "$g"
+			return 0
+			;;
+		esac
 	done </etc/group
 	return 1
 }
@@ -964,22 +986,12 @@ __install_pkg harfbuzz
 __install_pkg hdparm
 __install_pkg hostname
 __install_pkg htop
-__install_pkg httpd
 __install_pkg less
 __install_pkg logrotate
 __install_pkg lsof
 __install_pkg make
 __install_pkg man-db
 __install_pkg man-pages
-__install_pkg mod_fcgid
-__install_pkg mod_geoip
-__install_pkg mod_http2
-__install_pkg mod_maxminddb
-__install_pkg mod_perl
-__install_pkg mod_ssl
-__install_pkg mod_wsgi
-__install_pkg mod_proxy_html
-__install_pkg mod_proxy_uwsgi
 __install_pkg mosh
 __install_pkg mrtg
 __install_pkg munin
@@ -989,7 +1001,6 @@ __install_pkg ncurses
 __install_pkg ncurses-base
 __install_pkg ncurses-libs
 __install_pkg net-tools
-__install_pkg nginx
 __install_pkg oddjob-mkhomedir
 __install_pkg openssh-server
 __install_pkg openssl
@@ -1055,6 +1066,49 @@ __install_pkg xz-libs
 __install_pkg yum-utils
 __install_pkg zip
 ##################################################################################################################
+if [ "$PKMGR_INSTALL_HTTPD" != "no" ]; then
+	##################################################################################################################
+	__printf_head "Installing the HTTPD packages"
+	##################################################################################################################
+	SERVICES_ENABLE+="httpd "
+	IS_INSTALLED_HTTPD=""
+	__install_pkg httpd
+	__install_pkg mod_fcgid
+	__install_pkg mod_geoip
+	__install_pkg mod_http2
+	__install_pkg mod_maxminddb
+	__install_pkg mod_perl
+	__install_pkg mod_ssl
+	__install_pkg mod_wsgi
+	__install_pkg mod_proxy_html
+	__install_pkg mod_proxy_uwsgi
+else
+	PKMGR_INSTALL_HTTPD=no
+	__printf_head "Removing HTTPD server packages"
+	__remove_pkg mod_fcgid
+	__remove_pkg mod_geoip
+	__remove_pkg mod_http2
+	__remove_pkg mod_maxminddb
+	__remove_pkg mod_perl
+	__remove_pkg mod_ssl
+	__remove_pkg mod_wsgi
+	__remove_pkg mod_proxy_html
+	__remove_pkg mod_proxy_uwsgi
+	__remove_pkg httpd
+fi
+##################################################################################################################
+if [ "$PKMGR_INSTALL_NGINX" != "no" ]; then
+	##################################################################################################################
+	__printf_head "Installing the NGINX packages"
+	##################################################################################################################
+	SERVICES_ENABLE+="nginx "
+	__install_pkg nginx
+else
+	PKMGR_INSTALL_NGINX=no
+	__printf_head "Removing NGINX server packages"
+	__remove_pkg nginx
+fi
+##################################################################################################################
 __printf_head "Installing version-specific packages"
 ##################################################################################################################
 # EL7-only packages (deltarpm not available in EL8+)
@@ -1098,151 +1152,158 @@ __printf_head "Fixing grub"
 ##################################################################################################################
 __run_grub
 ##################################################################################################################
-__printf_head "Installing custom web server files"
 ##################################################################################################################
 if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
-[ -d "$CONFIG_TEMP_DIR" ] && __devnull __rm_if_exists "$CONFIG_TEMP_DIR"
-__devnull git clone -q "https://github.com/casjay-base/rhel" "$CONFIG_TEMP_DIR"
-if [ -d "/var/www/html/sysinfo/.git" ]; then
-	__devnull git -C "/var/www/html/sysinfo" reset --hard
-	__run_post git -C "/var/www/html/sysinfo" pull -q
-else
-	__devnull __rm_if_exists "/var/www/html/sysinfo"
-	__run_post git clone -q "https://github.com/phpsysinfo/phpsysinfo" "/var/www/html/sysinfo"
-fi
-if [ -d "/var/www/html/vnstat/.git" ]; then
-	__devnull git -C "/var/www/html/vnstat" reset --hard
-	__run_post git -C "/var/www/html/vnstat" pull -q
-else
-	__devnull __rm_if_exists "/var/www/html/vnstat"
-	__run_post git clone -q "https://github.com/solbu/vnstat-php-frontend" "/var/www/html/vnstat"
-fi
-run_post_message="Installing default server files" __run_post sudo -HE STATICSITE="$(hostname -f)" \
-	bash -c "$(curl -LSs "https://github.com/casjay-templates/default-web-assets/raw/main/setup.sh")"
-[ -f "/etc/httpd/modules/mod_wsgi_python3.so" ] && ln -sf /etc/httpd/modules/mod_wsgi_python3.so /etc/httpd/modules/mod_wsgi.so
-##################################################################################################################
-__printf_head "Deleting files"
-##################################################################################################################
-if __system_service_active named || __port_in_use "53"; then
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/var/named*
-else
-	__devnull __rm_if_exists /etc/named* /var/named/*
-fi
-if ! type -P ntp >/dev/null 2>&1 && ! type -P ntpd >/dev/null 2>&1 && ! type -P ntpq >/dev/null 2>&1; then
-	__devnull __rm_if_exists /etc/ntp*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/ntp*
-fi
-if ! type -P chronyd >/dev/null 2>&1; then
-	__devnull __rm_if_exists /etc/chrony*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/chrony*
-fi
-if ! type -P httpd >/dev/null 2>&1; then
-	IS_INSTALLED_HTTPD=no
-	__devnull __rm_if_exists /etc/httpd*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/httpd*
-fi
-if ! type -P nginx >/dev/null 2>&1; then
-	IS_INSTALLED_NGINX=no
-	__devnull __rm_if_exists /etc/nginx*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/nginx*
-fi
-if ! type -P named >/dev/null 2>&1; then
-	IS_INSTALLED_BIND=no
-	__devnull __rm_if_exists /etc/named*
-	__devnull __rm_if_exists /var/named*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/var/named*
-fi
-if ! type -P proftpd >/dev/null 2>&1; then
-	__devnull __rm_if_exists /etc/proftpd*
-	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/proftpd*
-fi
-if [ -f "/etc/certbot/dns.conf" ]; then
-	__devnull __rm_if_exists "$CONFIG_TEMP_DIR/etc/certbot/dns.conf"
-fi
-for rm_file in /etc/cron*/0* /etc/cron*/dailyjobs /var/ftp/uploads /etc/httpd/conf.d/ssl.conf; do
-	__run_post __devnull __rm_if_exists "$rm_file"
-done
-##################################################################################################################
-__printf_head "setting up config files"
-##################################################################################################################
-set_domainname="$(__domain_name)"
-myhostnameshort="$SET_HOSTNAME"
-myserverhostname="$(hostname -f)"
-myserverdomainname="$(hostname -f)"
-NETDEV=""
-while read -r _dev; do
-	case "$_dev" in
-		docker*|incus*|virbr*|lxcbr*|veth*|cni*|flannel*|weave*|tap*|tun*|wg*) continue ;;
-		br-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) continue ;;
-		*) NETDEV="$_dev"; break ;;
-	esac
-done < <(ip -4 route ls 2>/dev/null | awk '/^default/ {print $5}')
-unset _dev
-
-does_lo_have_ipv6=""
-ip -6 addr show dev lo 2>/dev/null | grep -q -- '::1' && does_lo_have_ipv6="yes"
-
-GET_WEB_USER="$(__get_www_user)"
-GET_WEB_GROUP="$(__get_www_group)"
-
-mycurrentipaddress_4=""
-mycurrentipaddress_6=""
-if [ -n "$NETDEV" ]; then
-	mycurrentipaddress_4="$(ip -4 -o addr show "$NETDEV" 2>/dev/null | awk '{sub("/.*","",$4); print $4; exit}')"
-	mycurrentipaddress_6="$(ip -6 -o addr show "$NETDEV" scope global 2>/dev/null | awk '{sub("/.*","",$4); print $4; exit}')"
-fi
-if [ -z "$mycurrentipaddress_4" ] || [ -z "$mycurrentipaddress_6" ]; then
-	read -ra _ips < <(hostname -I 2>/dev/null)
-	for _ip in "${_ips[@]}"; do
-		if [[ "$_ip" == *:*:* ]]; then
-			[ -z "$mycurrentipaddress_6" ] && [ "$_ip" != "::1" ] && mycurrentipaddress_6="$_ip"
-		elif [[ "$_ip" == [0-9]*.[0-9]* ]]; then
-			[ -z "$mycurrentipaddress_4" ] && [[ "$_ip" != 127.0.0.* ]] && [[ "$_ip" != 172.17.0.* ]] && mycurrentipaddress_4="$_ip"
+	if [ "$PKMGR_INSTALL_NGINX" != "no" ] || [ "$PKMGR_INSTALL_HTTPD" != "no" ]; then
+		__printf_head "Installing custom web server files"
+		[ -d "$CONFIG_TEMP_DIR" ] && __devnull __rm_if_exists "$CONFIG_TEMP_DIR"
+		__devnull git clone -q "https://github.com/casjay-base/rhel" "$CONFIG_TEMP_DIR"
+		if [ -d "/var/www/html/sysinfo/.git" ]; then
+			__devnull git -C "/var/www/html/sysinfo" reset --hard
+			__run_post git -C "/var/www/html/sysinfo" pull -q
+		else
+			__devnull __rm_if_exists "/var/www/html/sysinfo"
+			__run_post git clone -q "https://github.com/phpsysinfo/phpsysinfo" "/var/www/html/sysinfo"
 		fi
-	done
-	unset _ips _ip
-fi
-mycurrentipaddress_4="${mycurrentipaddress_4:-127.0.0.1}"
-mycurrentipaddress_6="${mycurrentipaddress_6:-::1}"
-# rsync -a below copies these modes onto the live /etc, /usr and /var, so the
-# checked-out tree must carry system defaults rather than the caller's umask
-__devnull find "$CONFIG_TEMP_DIR" -type d -exec chmod 755 {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec chmod 644 {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.sh" -exec chmod 755 {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.pl" -exec chmod 755 {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.cgi" -exec chmod 755 {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -iname ".gitkeep" -exec rm -Rf {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#mydomainname#$set_domainname#g" {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#myhostnameshort#$myhostnameshort#g" {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#myserverhostname#$myserverhostname#g" {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#myserverdomainname#$myserverdomainname#g" {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#mycurrentipaddress_6#$mycurrentipaddress_6#g" {} \;
-__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#mycurrentipaddress_4#$mycurrentipaddress_4#g" {} \;
-if [ -n "$NETDEV" ]; then
-	__fix_network_device_name "$CONFIG_TEMP_DIR"
-	if [ -f "/etc/sysconfig/network-scripts/ifcfg-eth0.sample" ]; then
-		__devnull mv -f "/etc/sysconfig/network-scripts/ifcfg-eth0.sample" "/etc/sysconfig/network-scripts/ifcfg-$NETDEV.sample"
+		if [ -d "/var/www/html/vnstat/.git" ]; then
+			__devnull git -C "/var/www/html/vnstat" reset --hard
+			__run_post git -C "/var/www/html/vnstat" pull -q
+		else
+			__devnull __rm_if_exists "/var/www/html/vnstat"
+			__run_post git clone -q "https://github.com/solbu/vnstat-php-frontend" "/var/www/html/vnstat"
+		fi
+		run_post_message="Installing default server files" __run_post sudo -HE STATICSITE="$(hostname -f)" \
+			bash -c "$(curl -LSs "https://github.com/casjay-templates/default-web-assets/raw/main/setup.sh")"
+		[ -f "/etc/httpd/modules/mod_wsgi_python3.so" ] && ln -sf /etc/httpd/modules/mod_wsgi_python3.so /etc/httpd/modules/mod_wsgi.so
 	fi
-fi
-if [ -z "$does_lo_have_ipv6" ]; then
-	sed -i 's|inet_interfaces.*|inet_interfaces = 127.0.0.1|g' $CONFIG_TEMP_DIR/etc/postfix/main.cf
-fi
-__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/{shorewall,shorewall6}
-__devnull mkdir -p /etc/rsync.d /var/log/named
-__devnull rsync -avhP $CONFIG_TEMP_DIR/{etc,root,usr,var}* /
-# the tree-wide 644 above must never reach private key material or /root
-__devnull find /etc/ssl /etc/pki /etc/cockpit -type f -name "*.key" -exec chmod 600 {} \;
-__devnull find /etc/ssl/CA/CasjaysDev/private -type d -exec chmod 700 {} \;
-__devnull chmod 700 /root
-# mod_geoip has no installable package on EL9/10 (the legacy Apache GeoIP
-# module was retired); guard the deployed httpd.conf so httpd can still
-# start when it's missing, without touching hosts where it's installed
-if [ -f /etc/httpd/conf/httpd.conf ] && [ ! -e /usr/lib64/httpd/modules/mod_geoip.so ] && [ ! -e /etc/httpd/modules/mod_geoip.so ]; then
-	__devnull sed -i '/^LoadModule geoip_module/s/^/#/' /etc/httpd/conf/httpd.conf
-	__devnull sed -i '/^GeoIPEnable\|^GeoIPDBFile/s/^/#/' /etc/httpd/conf/httpd.conf
-fi
+	##################################################################################################################
+	__printf_head "Deleting files"
+	##################################################################################################################
+	if __system_service_active named || __port_in_use "53"; then
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/var/named*
+	else
+		__devnull __rm_if_exists /etc/named* /var/named/*
+	fi
+	if ! type -P ntp >/dev/null 2>&1 && ! type -P ntpd >/dev/null 2>&1 && ! type -P ntpq >/dev/null 2>&1; then
+		__devnull __rm_if_exists /etc/ntp*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/ntp*
+	fi
+	if ! type -P chronyd >/dev/null 2>&1; then
+		__devnull __rm_if_exists /etc/chrony*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/chrony*
+	fi
+	if ! type -P httpd >/dev/null 2>&1; then
+		IS_INSTALLED_HTTPD=no
+		__devnull __rm_if_exists /etc/httpd*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/httpd*
+	fi
+	if ! type -P nginx >/dev/null 2>&1; then
+		IS_INSTALLED_NGINX=no
+		__devnull __rm_if_exists /etc/nginx*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/nginx*
+	fi
+	if ! type -P named >/dev/null 2>&1; then
+		IS_INSTALLED_BIND=no
+		__devnull __rm_if_exists /etc/named*
+		__devnull __rm_if_exists /var/named*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/named*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/var/named*
+	fi
+	if ! type -P proftpd >/dev/null 2>&1; then
+		__devnull __rm_if_exists /etc/proftpd*
+		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/proftpd*
+	fi
+	if [ -f "/etc/certbot/dns.conf" ]; then
+		__devnull __rm_if_exists "$CONFIG_TEMP_DIR/etc/certbot/dns.conf"
+	fi
+	for rm_file in /etc/cron*/0* /etc/cron*/dailyjobs /var/ftp/uploads /etc/httpd/conf.d/ssl.conf; do
+		__run_post __devnull __rm_if_exists "$rm_file"
+	done
+	##################################################################################################################
+	__printf_head "setting up config files"
+	##################################################################################################################
+	set_domainname="$(__domain_name)"
+	myhostnameshort="$SET_HOSTNAME"
+	myserverhostname="$(hostname -f)"
+	myserverdomainname="$(hostname -f)"
+	NETDEV=""
+	while read -r _dev; do
+		case "$_dev" in
+		docker* | incus* | virbr* | lxcbr* | veth* | cni* | flannel* | weave* | tap* | tun* | wg*) continue ;;
+		br-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) continue ;;
+		*)
+			NETDEV="$_dev"
+			break
+			;;
+		esac
+	done < <(ip -4 route ls 2>/dev/null | awk '/^default/ {print $5}')
+	unset _dev
+
+	does_lo_have_ipv6=""
+	ip -6 addr show dev lo 2>/dev/null | grep -q -- '::1' && does_lo_have_ipv6="yes"
+
+	GET_WEB_USER="$(__get_www_user)"
+	GET_WEB_GROUP="$(__get_www_group)"
+
+	mycurrentipaddress_4=""
+	mycurrentipaddress_6=""
+	if [ -n "$NETDEV" ]; then
+		mycurrentipaddress_4="$(ip -4 -o addr show "$NETDEV" 2>/dev/null | awk '{sub("/.*","",$4); print $4; exit}')"
+		mycurrentipaddress_6="$(ip -6 -o addr show "$NETDEV" scope global 2>/dev/null | awk '{sub("/.*","",$4); print $4; exit}')"
+	fi
+	if [ -z "$mycurrentipaddress_4" ] || [ -z "$mycurrentipaddress_6" ]; then
+		read -ra _ips < <(hostname -I 2>/dev/null)
+		for _ip in "${_ips[@]}"; do
+			if [[ "$_ip" == *:*:* ]]; then
+				[ -z "$mycurrentipaddress_6" ] && [ "$_ip" != "::1" ] && mycurrentipaddress_6="$_ip"
+			elif [[ "$_ip" == [0-9]*.[0-9]* ]]; then
+				[ -z "$mycurrentipaddress_4" ] && [[ "$_ip" != 127.0.0.* ]] && [[ "$_ip" != 172.17.0.* ]] && mycurrentipaddress_4="$_ip"
+			fi
+		done
+		unset _ips _ip
+	fi
+	mycurrentipaddress_4="${mycurrentipaddress_4:-127.0.0.1}"
+	mycurrentipaddress_6="${mycurrentipaddress_6:-::1}"
+	# rsync -a below copies these modes onto the live /etc, /usr and /var, so the
+	# checked-out tree must carry system defaults rather than the caller's umask
+	__devnull find "$CONFIG_TEMP_DIR" -type d -exec chmod 755 {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec chmod 644 {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.sh" -exec chmod 755 {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.pl" -exec chmod 755 {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -iname "*.cgi" -exec chmod 755 {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -iname ".gitkeep" -exec rm -Rf {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#mydomainname#$set_domainname#g" {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#myhostnameshort#$myhostnameshort#g" {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#myserverhostname#$myserverhostname#g" {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#myserverdomainname#$myserverdomainname#g" {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#mycurrentipaddress_6#$mycurrentipaddress_6#g" {} \;
+	__devnull find "$CONFIG_TEMP_DIR" -type f -exec sed -i "s#mycurrentipaddress_4#$mycurrentipaddress_4#g" {} \;
+	if [ -n "$NETDEV" ]; then
+		__fix_network_device_name "$CONFIG_TEMP_DIR"
+		if [ -f "/etc/sysconfig/network-scripts/ifcfg-eth0.sample" ]; then
+			__devnull mv -f "/etc/sysconfig/network-scripts/ifcfg-eth0.sample" "/etc/sysconfig/network-scripts/ifcfg-$NETDEV.sample"
+		fi
+	fi
+	if [ -z "$does_lo_have_ipv6" ]; then
+		sed -i 's|inet_interfaces.*|inet_interfaces = 127.0.0.1|g' $CONFIG_TEMP_DIR/etc/postfix/main.cf
+	fi
+	__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/{shorewall,shorewall6}
+	__devnull mkdir -p /etc/rsync.d /var/log/named
+	__devnull rsync -avh ##################################################################################################################
+	__printf_head "Deleting files"
+	P $CONFIG_TEMP_DIR/{etc,root,usr,var}* /
+	# the tree-wide 644 above must never reach private key material or /root
+	__devnull find /etc/ssl /etc/pki /etc/cockpit -type f -name "*.key" -exec chmod 600 {} \;
+	__devnull find /etc/ssl/CA/CasjaysDev/private -type d -exec chmod 700 {} \;
+	__devnull chmod 700 /root
+	# mod_geoip has no installable package on EL9/10 (the legacy Apache GeoIP
+	# module was retired); guard the deployed httpd.conf so httpd can still
+	# start when it's missing, without touching hosts where it's installed
+	if [ -f /etc/httpd/conf/httpd.conf ] && [ ! -e /usr/lib64/httpd/modules/mod_geoip.so ] && [ ! -e /etc/httpd/modules/mod_geoip.so ]; then
+		__devnull sed -i '/^LoadModule geoip_module/s/^/#/' /etc/httpd/conf/httpd.conf
+		__devnull sed -i '/^GeoIPEnable\|^GeoIPDBFile/s/^/#/' /etc/httpd/conf/httpd.conf
+	fi
 fi
 # docker-ce on el8 (26.x) refuses to start with "ip6tables": true unless
 # "experimental": true is also set ("ip6tables rules are only available
@@ -1478,17 +1539,20 @@ chmod -f 644 "/etc/cockpit/ws-certs.d/1-my-cert.cert"
 systemctl is-enabled cockpit >/dev/null 2>&1 && systemctl restart cockpit >/dev/null 2>&1
 
 EOF
-			cat <<EOF | tee "/etc/letsencrypt/renewal-hooks/post/nginx.sh" >/dev/null
+			if [ "$IS_INSTALLED_NGINX" != "no" ]; then
+				cat <<EOF | tee "/etc/letsencrypt/renewal-hooks/post/nginx.sh" >/dev/null
 #!/usr/bin/env sh
 systemctl is-enabled nginx >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1
-
 EOF
+			fi
 
-			cat <<EOF | tee "/etc/letsencrypt/renewal-hooks/post/httpd.sh" >/dev/null
+			if [ "$IS_INSTALLED_HTTPD" != "no" ]; then
+				cat <<EOF | tee "/etc/letsencrypt/renewal-hooks/post/httpd.sh" >/dev/null
 #!/usr/bin/env sh
 systemctl is-enabled httpd >/dev/null 2>&1 && systemctl reload httpd >/dev/null 2>&1
 
 EOF
+			fi
 
 			cat <<EOF | tee "/etc/letsencrypt/renewal-hooks/post/postfix.sh" >/dev/null
 #!/usr/bin/env sh
