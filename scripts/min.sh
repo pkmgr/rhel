@@ -1800,22 +1800,8 @@ __printf_head "Configuring the firewall"
 # ACCEPT, so it has been dropped. incus does NOT self-manage a zone
 # (ipv4.firewall/ipv6.firewall=false on its networks - it deliberately
 # leaves firewalling to the host), so incusbr0 keeps its explicit bind.
-# libvirt needs no equivalent block here: its predefined "libvirt" zone
-# already ships target=ACCEPT out of the box and libvirtd self-manages
-# virbr0's zone membership the same way docker-ce does, so touching it
-# manually would risk the same ZONE_CONFLICT docker0 hit above. podman
-# (when installed) is rootless/slirp4netns by default and does not
-# register its own firewalld zone, so it needs no entry here either -
-# revisit only if a host switches podman to a bridged/rootful network.
-#
-# The public zone is the only WAN-facing zone (docker/trusted/libvirt
-# are internal bridge zones and must stay fully open per the above), so
-# the SMB/NetBIOS drop below is scoped to it alone. fail2ban (banaction
-# firewallcmd-ipset[blocktype=DROP] in casjay-base/rhel's jail.local)
-# already handles targeted abuse; this is the one static exception -
-# SMB has no legitimate reason to be reachable from outside this host,
-# and DROP (not REJECT) is used so a port scan gets silence instead of
-# a reply confirming something is listening there.
+# libvirt's own "libvirt" zone already ships target=ACCEPT, and podman (rootless by default) registers no zone - neither needs an entry here.
+# SMB/NetBIOS has no legitimate reason to be reachable externally, so drop (not reject) it on the public zone only.
 if type -P firewall-cmd >/dev/null 2>&1; then
 	__devnull systemctl start firewalld
 	__devnull firewall-cmd --permanent --zone=public --set-target=ACCEPT
