@@ -341,7 +341,7 @@ if [ "$SYSTEM_TYPE" = "dc" ] || [ "$SYSTEM_TYPE" = "pbx" ]; then
 fi
 unset PKMGR_INSTALL_HTTPD_SET PKMGR_INSTALL_NGINX_SET
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SERVICES_ENABLE="cockpit cockpit.socket docker fail2ban munin-node ntpd php-fpm postfix proftpd rsyslog firewalld snmpd sshd uptimed downtimed "
+SERVICES_ENABLE="cockpit cockpit.socket docker fail2ban munin-node ntpd postfix proftpd rsyslog firewalld snmpd sshd uptimed downtimed "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SERVICES_DISABLE="avahi-daemon.service avahi-daemon.socket cups.path cups.service cups.socket dhcpd dhcpd6 dm-event.socket "
 SERVICES_DISABLE+="import-state.service irqbalance.service iscsi iscsid.socket iscsiuio.socket kdump loadmodules.service lvm2-lvmetad.socket "
@@ -1025,7 +1025,7 @@ __install_pkg perl-DBD-MariaDB
 # rpm -q check inside __dnf_yum verifies the base package correctly.
 # casjay.repo excludes php* from AppStream; --disableexcludes bypasses that
 # exclusion so dnf resolves from the enabled Remi stream.
-_php_pkgs="php php-cli php-common php-fpm php-gd php-gmp php-intl php-mbstring php-mysqlnd php-pdo php-pgsql php-xml"
+_php_pkgs="php php-cli php-common php-gd php-gmp php-intl php-mbstring php-mysqlnd php-pdo php-pgsql php-xml"
 _php_extra_opts=""
 if type -P dnf >/dev/null 2>&1 && dnf module list php 2>/dev/null | grep -q -- 'remi-'; then
 	_php_stream="$(dnf module list php 2>/dev/null | grep -- 'remi-' | awk '{print $2}' | sort -V | tail -1)"
@@ -1079,7 +1079,7 @@ if [ "$PKMGR_INSTALL_HTTPD" != "no" ]; then
 	##################################################################################################################
 	__printf_head "Installing the HTTPD packages"
 	##################################################################################################################
-	SERVICES_ENABLE+="httpd "
+	SERVICES_ENABLE+="httpd php-fpm"
 	IS_INSTALLED_HTTPD=""
 	__install_pkg httpd
 	__install_pkg mod_fcgid
@@ -1091,6 +1091,7 @@ if [ "$PKMGR_INSTALL_HTTPD" != "no" ]; then
 	__install_pkg mod_wsgi
 	__install_pkg mod_proxy_html
 	__install_pkg mod_proxy_uwsgi
+	__install_pkg php-fpm
 else
 	PKMGR_INSTALL_HTTPD=no
 	__printf_head "Removing HTTPD server packages"
@@ -1103,6 +1104,7 @@ else
 	__remove_pkg mod_wsgi
 	__remove_pkg mod_proxy_html
 	__remove_pkg mod_proxy_uwsgi
+	__remove_pkg php-fpm
 	__remove_pkg httpd
 fi
 ##################################################################################################################
