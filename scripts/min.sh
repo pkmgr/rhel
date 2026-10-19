@@ -356,6 +356,11 @@ fi
 __devnull() { "$@" >/dev/null 2>&1; }
 __port_in_use() { netstatg 2>&1 | awk '{print $4}' | grep -- ':[0-9]' | awk -F':' '{print $2}' | grep -- '[0-9]' | grep -q -- "^$1$" || return 2; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__is_httpd_custom() {
+	rpm -q httpd >/dev/null 2>&1 || return 1
+	grep -sq -- "Listen 8443" "/etc/httpd/conf/httpd.conf"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __system_service_exists() { systemctl status "$1" 2>&1 | grep -- 'Loaded:' | grep -iq -- "$1" && return 0 || return 1; }
 __system_service_active() { (systemctl is-enabled "$1" || systemctl is-active "$1") | grep -qiE -- 'enabled|active' || return 1; }
 __system_service_enable() { systemctl is-enabled --quiet "$1" 2>/dev/null || __execute "systemctl enable --now $1" "Enabling service: $1" || return 1; }
@@ -1163,7 +1168,6 @@ __printf_head "Fixing grub"
 ##################################################################################################################
 __run_grub
 ##################################################################################################################
-##################################################################################################################
 if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
 	if [ "$PKMGR_INSTALL_NGINX" != "no" ] || [ "$PKMGR_INSTALL_HTTPD" != "no" ]; then
 		__printf_head "Installing custom web server files"
@@ -1204,9 +1208,11 @@ if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
 		__devnull __rm_if_exists /etc/chrony*
 		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/chrony*
 	fi
-	if ! type -P httpd >/dev/null 2>&1; then
+	if ! __is_httpd_custom >/dev/null 2>&1; then
 		IS_INSTALLED_HTTPD=no
-		__devnull __rm_if_exists /etc/httpd*
+		if [ "$PKMGR_INSTALL_HTTPD" = "no" ] || ! rpm -q httpd >/dev/null 2>&1; then
+			__devnull __rm_if_exists /etc/httpd*
+		fi
 		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/httpd*
 	fi
 	if ! type -P nginx >/dev/null 2>&1; then
