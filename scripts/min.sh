@@ -1181,11 +1181,14 @@ if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
 			__run_post git clone -q "https://github.com/phpsysinfo/phpsysinfo" "/var/www/html/sysinfo"
 		fi
 		if [ -d "/var/www/html/vnstat/.git" ]; then
+			if grep -qs 'solbu/vnstat-php-frontend' '/var/www/html/vnstat/.git/config'; then
+				sed -i 's|solbu/vnstat-php-frontend|forkmgr/bjd-vnstat-php-frontend|g' "/var/www/html/vnstat/.git/config"
+			fi
 			__devnull git -C "/var/www/html/vnstat" reset --hard
 			__run_post git -C "/var/www/html/vnstat" pull -q
 		else
 			__devnull __rm_if_exists "/var/www/html/vnstat"
-			__run_post git clone -q "https://github.com/solbu/vnstat-php-frontend" "/var/www/html/vnstat"
+			__run_post git clone -q "https://github.com/forkmgr/bjd-vnstat-php-frontend" "/var/www/html/vnstat"
 		fi
 		run_post_message="Installing default server files" __run_post sudo -HE STATICSITE="$(hostname -f)" \
 			bash -c "$(curl -LSs "https://github.com/casjay-templates/default-web-assets/raw/main/setup.sh")"
