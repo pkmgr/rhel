@@ -1211,11 +1211,9 @@ if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
 		__devnull __rm_if_exists /etc/chrony*
 		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/chrony*
 	fi
-	if ! __is_httpd_custom >/dev/null 2>&1; then
+	if ! type -P httpd >/dev/null 2>&1; then
 		IS_INSTALLED_HTTPD=no
-		if [ "$PKMGR_INSTALL_HTTPD" = "no" ] || ! rpm -q httpd >/dev/null 2>&1; then
-			__devnull __rm_if_exists /etc/httpd*
-		fi
+	  __devnull __rm_if_exists /etc/httpd*
 		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/httpd*
 	fi
 	if ! type -P nginx >/dev/null 2>&1; then
