@@ -1232,6 +1232,12 @@ if [ "${PKMGR_CONFIG_SETUP:-yes}" != "no" ]; then
 		__devnull __rm_if_exists /etc/proftpd*
 		__devnull __rm_if_exists $CONFIG_TEMP_DIR/etc/proftpd*
 	fi
+  if [ "$IS_INSTALLED_HTTPD" = "no" ]; then
+	  __devnull __rm_if_exists "/etc/nginx/global.d/apache-defaults.conf"
+		__devnull __rm_if_exists "$CONFIG_TEMP_DIR/etc/nginx/global.d/apache-defaults.conf"
+		__devnull __rm_if_exists "/etc/nginx/vhosts.d/0000-default.conf"
+		__devnull __rm_if_exists "$CONFIG_TEMP_DIR/etc/nginx/vhosts.d/0000-default.conf"
+	fi
 	if [ -f "/etc/certbot/dns.conf" ]; then
 		__devnull __rm_if_exists "$CONFIG_TEMP_DIR/etc/certbot/dns.conf"
 	fi
